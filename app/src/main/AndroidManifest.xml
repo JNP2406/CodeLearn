@@ -29,6 +29,82 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.auth.SignUpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.auth.SignInActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentHomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.CourseDetailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.CourseSectionActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.QuizActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.QuizResultActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.CaseStudyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.mentor.MentorChatsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.mentor.MentorProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.FindMentorActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentMentorActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.mentor.MentorCaseStudyReviewActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentChatActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.mentor.MentorChatActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.student.StudentCalendarActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.mentor.MentorCalendarActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.NotificationActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

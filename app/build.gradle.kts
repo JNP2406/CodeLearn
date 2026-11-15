@@ -45,4 +45,5 @@ dependencies {
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation("io.coil-kt:coil:2.7.0")
 }

@@ -1,5 +1,6 @@
 package com.example.codelearn.ui.onboarding
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
+import com.example.codelearn.ui.auth.SignUpActivity
 import com.example.codelearn.viewmodel.OnboardingViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -76,11 +78,25 @@ class OnboardingActivity : AppCompatActivity() {
                 }
 
                 2 -> {
-                    Toast.makeText(
+                    val role = viewModel.selectedRole.value
+
+                    if (role == null) {
+                        Toast.makeText(
+                            this,
+                            "Role belum dipilih.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@setOnClickListener
+                    }
+
+                    val intent = Intent(
                         this,
-                        "Selanjutnya: halaman Sign Up",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        SignUpActivity::class.java
+                    )
+
+                    intent.putExtra("ROLE", role)
+
+                    startActivity(intent)
                 }
             }
         }
@@ -113,12 +129,11 @@ class OnboardingActivity : AppCompatActivity() {
 
         when (page) {
 
-            // ONBOARDING 1
             0 -> {
-
                 imgOnboarding.setImageResource(R.drawable.onboarding_1)
 
-                tvTitle.text = "Belajar coding jadi lebih mudah"
+                tvTitle.text =
+                    "Belajar coding jadi lebih mudah"
 
                 tvDescription.text =
                     "Dari nol sampai paham, satu sesi dalam satu waktu."
@@ -132,12 +147,11 @@ class OnboardingActivity : AppCompatActivity() {
                 tvPageIndicator.text = "● ○ ○"
             }
 
-            // ONBOARDING 2
             1 -> {
-
                 imgOnboarding.setImageResource(R.drawable.onboarding_2)
 
-                tvTitle.text = "Kamu mau jadi apa di CodeLearn?"
+                tvTitle.text =
+                    "Kamu mau jadi apa di CodeLearn?"
 
                 tvDescription.text =
                     "Pilih satu peran. Kamu bisa membaca detailnya di bawah."
@@ -151,12 +165,11 @@ class OnboardingActivity : AppCompatActivity() {
                 tvPageIndicator.text = "○ ● ○"
             }
 
-            // ONBOARDING 3
             2 -> {
-
                 imgOnboarding.setImageResource(R.drawable.onboarding_3)
 
-                tvTitle.text = "Ayo mulai perjalananmu!"
+                tvTitle.text =
+                    "Ayo mulai perjalananmu!"
 
                 tvDescription.text =
                     "Buat akunmu sekarang, lalu mulai belajar atau berbagi pengetahuan bersama CodeLearn."
@@ -177,29 +190,31 @@ class OnboardingActivity : AppCompatActivity() {
         val blue = getColor(R.color.blue)
         val gray = getColor(android.R.color.darker_gray)
 
-        if (role == "student") {
+        when (role) {
 
-            cardStudent.strokeColor = blue
-            cardStudent.strokeWidth = 3
+            "student" -> {
+                cardStudent.strokeColor = blue
+                cardStudent.strokeWidth = 3
 
-            cardMentor.strokeColor = gray
-            cardMentor.strokeWidth = 1
+                cardMentor.strokeColor = gray
+                cardMentor.strokeWidth = 1
+            }
 
-        } else if (role == "mentor") {
+            "mentor" -> {
+                cardStudent.strokeColor = gray
+                cardStudent.strokeWidth = 1
 
-            cardStudent.strokeColor = gray
-            cardStudent.strokeWidth = 1
+                cardMentor.strokeColor = blue
+                cardMentor.strokeWidth = 3
+            }
 
-            cardMentor.strokeColor = blue
-            cardMentor.strokeWidth = 3
+            else -> {
+                cardStudent.strokeColor = gray
+                cardStudent.strokeWidth = 1
 
-        } else {
-
-            cardStudent.strokeColor = gray
-            cardStudent.strokeWidth = 1
-
-            cardMentor.strokeColor = gray
-            cardMentor.strokeWidth = 1
+                cardMentor.strokeColor = gray
+                cardMentor.strokeWidth = 1
+            }
         }
     }
 }
