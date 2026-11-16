@@ -9,290 +9,75 @@ router.get(
     authMiddleware,
     async (req, res) => {
         try {
-            if (
-                req.user.role !== "student"
-            ) {
+            if (req.user.role !== "student") {
                 return res.status(403).json({
-                    message:
-                        "Student access only"
+                    message: "Student access only"
                 });
             }
 
-            const studentId =
-                req.user.id;
+            const studentId = req.user.id;
+            const courseId = Number(req.params.courseId);
 
-            const courseId =
-                Number(
-                    req.params.courseId
-                );
+            const [caseStudies] = await db.query(
+                `
+                SELECT
+                    id,
+                    course_id,
+                    title,
+                    scenario,
+                    task_description
+                FROM case_studies
+                WHERE course_id = ?
+                LIMIT 1
+                `,
+                [courseId]
+            );
 
-            const [caseStudies] =
-                await db.query(
-                    `
-                    SELECT
-                        id,
-                        course_id,
-                        title,
-                        scenario,
-                        task_description,
-                        created_at
-                    FROM case_studies
-                    WHERE course_id = ?
-                    LIMIT 1
-                    `,
-                    [
-                        courseId
-                    ]
-                );
-
-            if (
-                caseStudies.length === 0
-            ) {
+            if (caseStudies.length === 0) {
                 return res.status(404).json({
-                    message:
-                        "Case study not found"
+                    message: "Case study not found"
                 });
             }
 
-            const [mentorings] =
-                await db.query(
-                    `
-                    SELECT
-                        id,
-                        mentor_id,
-                        course_id,
-                        from_session,
-                        COALESCE(
-                            to_session,
-                            from_session
-                        ) AS to_session,
-                        include_final_project,
-                        start_at,
-                        deadline_at,
-                        ended_at,
-                        status
-                    FROM mentorings
-                    WHERE student_id = ?
-                    AND course_id = ?
-                    AND include_final_project = 1
-                    ORDER BY start_at DESC
-                    LIMIT 1
-                    `,
-                    [
-                        studentId,
-                        courseId
-                    ]
-                );
+            const [mentorings] = await db.query(
+                `
+                SELECT
+                    m.id,
+                    m.mentor_id,
+                    u.name AS mentor_name,
+                    m.course_id,
+                    m.from_session,
+                    COALESCE(
+                        m.to_session,
+                        m.from_session
+                    ) AS to_session,
+                    m.include_final_project,
+                    m.start_at,
+                    m.deadline_at,
+                    m.ended_at,
+                    m.status
+                FROM mentorings m
+                JOIN users u
+                    ON u.id = m.mentor_id
+                WHERE m.student_id = ?
+                AND m.course_id = ?
+                AND m.include_final_project = 1
+                ORDER BY m.start_at DESC
+                LIMIT 1
+                `,
+                [
+                    studentId,
+                    courseId
+                ]
+            );
 
-            let mentoring =
-                null;
+            let mentoring = null;
+            let review = null;
 
-            let review =
-                null;
+            if (mentorings.length > 0) {
+                mentoring = mentorings[0];
 
-            if (
-                mentorings.length > 0
-            ) {
-                mentoring =
-                    mentorings[0];
-
-                const [reviews] =
-                    await db.query(
-                        `
-                        SELECT
-                            id,
-                            mentoring_id,
-                            case_study_id,
-                            status,
-                            reviewed_at
-                        FROM case_study_reviews
-                        WHERE mentoring_id = ?
-                        LIMIT 1
-                        `,
-                        [
-                            mentoring.id
-                        ]
-                    );
-
-                if (
-                    reviews.length > 0
-                ) {
-                    review =
-                        reviews[0];
-
-                } else if (
-                    mentoring.status === "active"
-                ) {
-                    const [result] =
-                        await db.query(
-                            `
-                            INSERT INTO case_study_reviews
-                            (
-                                mentoring_id,
-                                case_study_id,
-                                status
-                            )
-                            VALUES (
-                                ?, ?, 'under_review'
-                            )
-                            `,
-                            [
-                                mentoring.id,
-                                caseStudies[0].id
-                            ]
-                        );
-
-                    review = {
-                        id:
-                            result.insertId,
-
-                        mentoring_id:
-                            mentoring.id,
-
-                        case_study_id:
-                            caseStudies[0].id,
-
-                        status:
-                            "under_review",
-
-                        reviewed_at:
-                            null
-                    };
-                }
-            }
-
-            return res.status(200).json({
-                case_study:
-                    caseStudies[0],
-
-                mentoring,
-                review
-            });
-
-        } catch (error) {
-            console.error(error);
-
-            return res.status(500).json({
-                message:
-                    "Failed to load case study"
-            });
-        }
-    }
-);
-
-router.get(
-    "/mentor/mentoring/:mentoringId",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (
-                req.user.role !== "mentor"
-            ) {
-                return res.status(403).json({
-                    message:
-                        "Mentor access only"
-                });
-            }
-
-            const mentorId =
-                req.user.id;
-
-            const mentoringId =
-                Number(
-                    req.params.mentoringId
-                );
-
-            const [mentorings] =
-                await db.query(
-                    `
-                    SELECT
-                        m.id AS mentoring_id,
-                        m.student_id,
-                        u.name AS student_name,
-                        u.campus AS student_campus,
-                        u.profile_image AS student_profile_image,
-                        m.mentor_id,
-                        m.course_id,
-                        c.name AS course_name,
-                        m.from_session,
-                        COALESCE(
-                            m.to_session,
-                            m.from_session
-                        ) AS to_session,
-                        m.include_final_project,
-                        m.start_at,
-                        m.deadline_at,
-                        m.ended_at,
-                        m.status
-                    FROM mentorings m
-                    JOIN users u
-                        ON u.id = m.student_id
-                    JOIN courses c
-                        ON c.id = m.course_id
-                    WHERE m.id = ?
-                    AND m.mentor_id = ?
-                    LIMIT 1
-                    `,
-                    [
-                        mentoringId,
-                        mentorId
-                    ]
-                );
-
-            if (
-                mentorings.length === 0
-            ) {
-                return res.status(404).json({
-                    message:
-                        "Mentoring not found"
-                });
-            }
-
-            const mentoring =
-                mentorings[0];
-
-            if (
-                mentoring.include_final_project !== 1
-            ) {
-                return res.status(400).json({
-                    message:
-                        "This mentoring does not include a final project"
-                });
-            }
-
-            const [caseStudies] =
-                await db.query(
-                    `
-                    SELECT
-                        id,
-                        course_id,
-                        title,
-                        scenario,
-                        task_description,
-                        created_at
-                    FROM case_studies
-                    WHERE course_id = ?
-                    LIMIT 1
-                    `,
-                    [
-                        mentoring.course_id
-                    ]
-                );
-
-            if (
-                caseStudies.length === 0
-            ) {
-                return res.status(404).json({
-                    message:
-                        "Case study not found"
-                });
-            }
-
-            const caseStudy =
-                caseStudies[0];
-
-            const [reviews] =
-                await db.query(
+                const [reviews] = await db.query(
                     `
                     SELECT
                         id,
@@ -304,22 +89,14 @@ router.get(
                     WHERE mentoring_id = ?
                     LIMIT 1
                     `,
-                    [
-                        mentoringId
-                    ]
+                    [mentoring.id]
                 );
 
-            let review;
+                if (reviews.length > 0) {
+                    review = reviews[0];
 
-            if (
-                reviews.length > 0
-            ) {
-                review =
-                    reviews[0];
-
-            } else {
-                const [result] =
-                    await db.query(
+                } else if (mentoring.status === "active") {
+                    const [result] = await db.query(
                         `
                         INSERT INTO case_study_reviews
                         (
@@ -332,33 +109,24 @@ router.get(
                         )
                         `,
                         [
-                            mentoringId,
-                            caseStudy.id
+                            mentoring.id,
+                            caseStudies[0].id
                         ]
                     );
 
-                review = {
-                    id:
-                        result.insertId,
-
-                    mentoring_id:
-                        mentoringId,
-
-                    case_study_id:
-                        caseStudy.id,
-
-                    status:
-                        "under_review",
-
-                    reviewed_at:
-                        null
-                };
+                    review = {
+                        id: result.insertId,
+                        mentoring_id: mentoring.id,
+                        case_study_id: caseStudies[0].id,
+                        status: "under_review",
+                        reviewed_at: null
+                    };
+                }
             }
 
             return res.status(200).json({
+                case_study: caseStudies[0],
                 mentoring,
-                case_study:
-                    caseStudy,
                 review
             });
 
@@ -366,8 +134,161 @@ router.get(
             console.error(error);
 
             return res.status(500).json({
-                message:
-                    "Failed to load case study review"
+                message: "Failed to load case study"
+            });
+        }
+    }
+);
+
+router.get(
+    "/mentor/mentoring/:mentoringId",
+    authMiddleware,
+    async (req, res) => {
+        try {
+            if (req.user.role !== "mentor") {
+                return res.status(403).json({
+                    message: "Mentor access only"
+                });
+            }
+
+            const mentorId = req.user.id;
+            const mentoringId = Number(
+                req.params.mentoringId
+            );
+
+            const [mentorings] = await db.query(
+                `
+                SELECT
+                    m.id AS mentoring_id,
+                    m.student_id,
+                    u.name AS student_name,
+                    u.campus AS student_campus,
+                    u.profile_image AS student_profile_image,
+                    m.mentor_id,
+                    m.course_id,
+                    c.name AS course_name,
+                    m.from_session,
+                    COALESCE(
+                        m.to_session,
+                        m.from_session
+                    ) AS to_session,
+                    m.include_final_project,
+                    m.start_at,
+                    m.deadline_at,
+                    m.ended_at,
+                    m.status
+                FROM mentorings m
+                JOIN users u
+                    ON u.id = m.student_id
+                JOIN courses c
+                    ON c.id = m.course_id
+                WHERE m.id = ?
+                AND m.mentor_id = ?
+                LIMIT 1
+                `,
+                [
+                    mentoringId,
+                    mentorId
+                ]
+            );
+
+            if (mentorings.length === 0) {
+                return res.status(404).json({
+                    message: "Mentoring not found"
+                });
+            }
+
+            const mentoring = mentorings[0];
+
+            if (mentoring.include_final_project !== 1) {
+                return res.status(400).json({
+                    message:
+                        "This mentoring does not include a final project"
+                });
+            }
+
+            const [caseStudies] = await db.query(
+                `
+                SELECT
+                    id,
+                    course_id,
+                    title,
+                    scenario,
+                    task_description
+                FROM case_studies
+                WHERE course_id = ?
+                LIMIT 1
+                `,
+                [mentoring.course_id]
+            );
+
+            if (caseStudies.length === 0) {
+                return res.status(404).json({
+                    message: "Case study not found"
+                });
+            }
+
+            const caseStudy = caseStudies[0];
+
+            const [reviews] = await db.query(
+                `
+                SELECT
+                    id,
+                    mentoring_id,
+                    case_study_id,
+                    status,
+                    reviewed_at
+                FROM case_study_reviews
+                WHERE mentoring_id = ?
+                LIMIT 1
+                `,
+                [mentoringId]
+            );
+
+            let review;
+
+            if (reviews.length > 0) {
+                review = reviews[0];
+
+            } else {
+                const [result] = await db.query(
+                    `
+                    INSERT INTO case_study_reviews
+                    (
+                        mentoring_id,
+                        case_study_id,
+                        status
+                    )
+                    VALUES (
+                        ?, ?, 'under_review'
+                    )
+                    `,
+                    [
+                        mentoringId,
+                        caseStudy.id
+                    ]
+                );
+
+                review = {
+                    id: result.insertId,
+                    mentoring_id: mentoringId,
+                    case_study_id: caseStudy.id,
+                    status: "under_review",
+                    reviewed_at: null
+                };
+            }
+
+            return res.status(200).json({
+                mentoring,
+                case_study: caseStudy,
+                review
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                message: "Failed to load case study review"
             });
         }
     }
@@ -377,38 +298,27 @@ router.patch(
     "/reviews/:reviewId",
     authMiddleware,
     async (req, res) => {
-        const connection =
-            await db.getConnection();
+        const connection = await db.getConnection();
 
         try {
-            if (
-                req.user.role !== "mentor"
-            ) {
+            if (req.user.role !== "mentor") {
                 return res.status(403).json({
-                    message:
-                        "Mentor access only"
+                    message: "Mentor access only"
                 });
             }
 
-            const mentorId =
-                req.user.id;
+            const mentorId = req.user.id;
+            const reviewId = Number(
+                req.params.reviewId
+            );
 
-            const reviewId =
-                Number(
-                    req.params.reviewId
-                );
-
-            const {
-                status
-            } = req.body;
+            const { status } = req.body;
 
             if (
                 ![
                     "approved",
                     "not_approved"
-                ].includes(
-                    status
-                )
+                ].includes(status)
             ) {
                 return res.status(400).json({
                     message:
@@ -418,47 +328,42 @@ router.patch(
 
             await connection.beginTransaction();
 
-            const [reviews] =
-                await connection.query(
-                    `
-                    SELECT
-                        csr.id,
-                        csr.status,
-                        csr.mentoring_id,
-                        m.mentor_id,
-                        m.student_id,
-                        c.name AS course_name
-                    FROM case_study_reviews csr
-                    JOIN mentorings m
-                        ON m.id =
-                        csr.mentoring_id
-                    JOIN courses c
-                        ON c.id =
-                        m.course_id
-                    WHERE csr.id = ?
-                    AND m.mentor_id = ?
-                    LIMIT 1
-                    FOR UPDATE
-                    `,
-                    [
-                        reviewId,
-                        mentorId
-                    ]
-                );
+            const [reviews] = await connection.query(
+                `
+                SELECT
+                    csr.id,
+                    csr.status,
+                    csr.mentoring_id,
+                    m.mentor_id,
+                    m.student_id,
+                    c.name AS course_name
+                FROM case_study_reviews csr
+                JOIN mentorings m
+                    ON m.id =
+                    csr.mentoring_id
+                JOIN courses c
+                    ON c.id =
+                    m.course_id
+                WHERE csr.id = ?
+                AND m.mentor_id = ?
+                LIMIT 1
+                FOR UPDATE
+                `,
+                [
+                    reviewId,
+                    mentorId
+                ]
+            );
 
-            if (
-                reviews.length === 0
-            ) {
+            if (reviews.length === 0) {
                 await connection.rollback();
 
                 return res.status(404).json({
-                    message:
-                        "Review not found"
+                    message: "Review not found"
                 });
             }
 
-            const review =
-                reviews[0];
+            const review = reviews[0];
 
             if (
                 review.status === "approved" ||
@@ -524,11 +429,9 @@ router.patch(
                 `,
                 [
                     review.student_id,
-
                     status === "approved"
                         ? "case_approved"
                         : "case_not_approved",
-
                     notificationTitle,
                     notificationMessage
                 ]
@@ -541,7 +444,6 @@ router.patch(
                     status === "approved"
                         ? "Case study approved"
                         : "Case study not approved",
-
                 status
             });
 

@@ -472,6 +472,17 @@ class FindMentorActivity : AppCompatActivity() {
                 courseNames
             )
 
+        selectedCourseFilter?.let { selectedCourseId ->
+            val index =
+                courses.indexOfFirst {
+                    it.course_id == selectedCourseId
+                }
+
+            if (index >= 0) {
+                courseSpinner.setSelection(index)
+            }
+        }
+
         val sessions =
             listOf(
                 "Session 1",
