@@ -44,33 +44,23 @@ class SignInActivity : AppCompatActivity() {
     private fun setupListeners() {
 
         btnSignIn.setOnClickListener {
-            val email =
-                etEmail.text
-                    .toString()
-                    .trim()
+            val email = etEmail.text.toString().trim()
 
-            val password =
-                etPassword.text
-                    .toString()
+            val password = etPassword.text.toString()
 
             if (email.isEmpty()) {
-                etEmail.error =
-                    "Email is required"
+                etEmail.error = "Email is required"
 
                 return@setOnClickListener
             }
 
             if (password.isEmpty()) {
-                etPassword.error =
-                    "Password is required"
+                etPassword.error = "Password is required"
 
                 return@setOnClickListener
             }
 
-            viewModel.login(
-                email = email,
-                password = password
-            )
+            viewModel.login(email = email, password = password)
         }
 
         tvSignUp.setOnClickListener {
@@ -80,34 +70,23 @@ class SignInActivity : AppCompatActivity() {
 
     private fun setupObservers() {
         viewModel.isLoading.observe(this) { isLoading ->
-            btnSignIn.isEnabled =
-                !isLoading
+            btnSignIn.isEnabled = !isLoading
 
-            btnSignIn.text =
-                if (isLoading) {
-                    "Signing in..."
-                } else {
-                    "Sign in"
-                }
+            btnSignIn.text = if (isLoading) {
+                "Signing in..."
+            } else {
+                "Sign in"
+            }
         }
 
         viewModel.authResult.observe(this) { result ->
             result.onSuccess { response ->
-                val token =
-                    response.token
+                val token = response.token
 
-                val user =
-                    response.user
+                val user = response.user
 
-                if (
-                    token == null ||
-                    user == null
-                ) {
-                    Toast.makeText(
-                        this,
-                        "Invalid login response",
-                        Toast.LENGTH_LONG
-                    ).show()
+                if (token == null || user == null) {
+                    Toast.makeText(this, "Invalid login response", Toast.LENGTH_LONG).show()
 
                     return@onSuccess
                 }
@@ -122,11 +101,7 @@ class SignInActivity : AppCompatActivity() {
                     isDemo = user.is_demo
                 )
 
-                Toast.makeText(
-                    this,
-                    "Welcome ${user.name}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
 
                 when (user.role.lowercase()) {
                     "student" -> {
@@ -140,51 +115,30 @@ class SignInActivity : AppCompatActivity() {
                     else -> {
                         sessionManager.logout()
 
-                        Toast.makeText(
-                            this,
-                            "Unknown user role",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this, "Unknown user role", Toast.LENGTH_LONG).show()
                     }
                 }
             }
 
             result.onFailure { error ->
-                Toast.makeText(
-                    this,
-                    error.message
-                        ?: "Login failed",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this, error.message ?: "Login failed", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun openStudentHome() {
-        val intent =
-            Intent(
-                this,
-                StudentHomeActivity::class.java
-            )
+        val intent = Intent(this, StudentHomeActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
         startActivity(intent)
         finish()
     }
 
     private fun openMentorHome() {
-        val intent =
-            Intent(
-                this,
-                MentorChatsActivity::class.java
-            )
+        val intent = Intent(this, MentorChatsActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
         startActivity(intent)
         finish()

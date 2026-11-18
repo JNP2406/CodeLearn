@@ -9,41 +9,22 @@ import retrofit2.Response
 
 class QuizRepository {
 
-    private val apiService =
-        ApiClient.apiService
+    private val apiService = ApiClient.apiService
 
-    suspend fun getQuiz(
-        token: String,
-        sessionId: Int
-    ): Response<QuizResponse> {
+    suspend fun getQuiz(token: String, sessionId: Int): Response<QuizResponse> {
 
-        return apiService.getQuiz(
-            "Bearer $token",
-            sessionId
-        )
+        return apiService.getQuiz("Bearer $token", sessionId)
     }
 
-    suspend fun getQuizResult(
-        token: String,
-        sessionId: Int
-    ): Response<QuizResultResponse> {
+    suspend fun getQuizResult(token: String, sessionId: Int): Response<QuizResultResponse> {
 
-        return apiService.getQuizResult(
-            "Bearer $token",
-            sessionId
-        )
+        return apiService.getQuizResult("Bearer $token", sessionId)
     }
 
     suspend fun submitQuiz(
-        token: String,
-        sessionId: Int,
-        request: QuizSubmitRequest
+        token: String, sessionId: Int, request: QuizSubmitRequest
     ): Response<QuizSubmitResponse> {
 
-        return apiService.submitQuiz(
-            "Bearer $token",
-            sessionId,
-            request
-        )
+        return apiService.submitQuiz("Bearer $token", sessionId, request)
     }
 }

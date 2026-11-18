@@ -36,13 +36,11 @@ class CourseViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _courses.value = response.body()!!.courses
                 } else {
-                    _errorMessage.value =
-                        "Failed to load courses: ${response.code()}"
+                    _errorMessage.value = "Failed to load courses: ${response.code()}"
                 }
 
             } catch (e: Exception) {
-                _errorMessage.value =
-                    e.message ?: "Failed to connect to server"
+                _errorMessage.value = e.message ?: "Failed to connect to server"
             } finally {
                 _isLoading.value = false
             }
@@ -60,13 +58,11 @@ class CourseViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _courseDetail.value = response.body()!!.course
                 } else {
-                    _errorMessage.value =
-                        "Failed to load course: ${response.code()}"
+                    _errorMessage.value = "Failed to load course: ${response.code()}"
                 }
 
             } catch (e: Exception) {
-                _errorMessage.value =
-                    e.message ?: "Failed to connect to server"
+                _errorMessage.value = e.message ?: "Failed to connect to server"
             } finally {
                 _isLoading.value = false
             }

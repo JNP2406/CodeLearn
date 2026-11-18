@@ -29,96 +29,60 @@ import java.util.TimeZone
 
 class CourseSectionActivity : AppCompatActivity() {
 
-    private val courseViewModel:
-            CourseViewModel by viewModels()
+    private val courseViewModel: CourseViewModel by viewModels()
 
-    private val progressViewModel:
-            ProgressViewModel by viewModels()
+    private val progressViewModel: ProgressViewModel by viewModels()
 
-    private val materialViewModel:
-            MaterialViewModel by viewModels()
+    private val materialViewModel: MaterialViewModel by viewModels()
 
-    private lateinit var sessionManager:
-            SessionManager
+    private lateinit var sessionManager: SessionManager
 
-    private lateinit var btnBackArea:
-            LinearLayout
+    private lateinit var btnBackArea: LinearLayout
 
-    private lateinit var tvCourseName:
-            TextView
+    private lateinit var tvCourseName: TextView
 
-    private lateinit var sessionTabsContainer:
-            LinearLayout
+    private lateinit var sessionTabsContainer: LinearLayout
 
-    private lateinit var tvSessionTitle:
-            TextView
+    private lateinit var tvSessionTitle: TextView
 
-    private lateinit var tvSessionSubtitle:
-            TextView
+    private lateinit var tvSessionSubtitle: TextView
 
-    private lateinit var tvStartDate:
-            TextView
+    private lateinit var tvStartDate: TextView
 
-    private lateinit var tvDeadlineDate:
-            TextView
+    private lateinit var tvDeadlineDate: TextView
 
-    private lateinit var materialContainer:
-            LinearLayout
+    private lateinit var materialContainer: LinearLayout
 
-    private lateinit var cardSessionTest:
-            MaterialCardView
+    private lateinit var cardSessionTest: MaterialCardView
 
-    private lateinit var cardFinalProject:
-            MaterialCardView
+    private lateinit var cardFinalProject: MaterialCardView
 
-    private var courseId =
-        -1
+    private var courseId = -1
 
-    private var currentCourse:
-            CourseDetail? = null
+    private var currentCourse: CourseDetail? = null
 
-    private var selectedSession:
-            SessionResponse? = null
+    private var selectedSession: SessionResponse? = null
 
-    private var progressSessions:
-            List<SessionProgressResponse> =
-        emptyList()
+    private var progressSessions: List<SessionProgressResponse> = emptyList()
 
-    private var isDemoAccount =
-        false
+    private var isDemoAccount = false
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
 
-        super.onCreate(
-            savedInstanceState
-        )
+        super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_course_section
-        )
+        setContentView(R.layout.activity_course_section)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
-        isDemoAccount =
-            sessionManager.isDemo()
+        isDemoAccount = sessionManager.isDemo()
 
-        courseId =
-            intent.getIntExtra(
-                "COURSE_ID",
-                -1
-            )
+        courseId = intent.getIntExtra("COURSE_ID", -1)
 
         if (courseId == -1) {
 
-            Toast.makeText(
-                this,
-                "Course not found",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Course not found", Toast.LENGTH_SHORT).show()
 
             finish()
             return
@@ -128,9 +92,7 @@ class CourseSectionActivity : AppCompatActivity() {
         setupListeners()
         setupObservers()
 
-        courseViewModel.loadCourseDetail(
-            courseId
-        )
+        courseViewModel.loadCourseDetail(courseId)
     }
 
     override fun onResume() {
@@ -142,55 +104,25 @@ class CourseSectionActivity : AppCompatActivity() {
 
     private fun bindViews() {
 
-        btnBackArea =
-            findViewById(
-                R.id.btnBackArea
-            )
+        btnBackArea = findViewById(R.id.btnBackArea)
 
-        tvCourseName =
-            findViewById(
-                R.id.tvCourseName
-            )
+        tvCourseName = findViewById(R.id.tvCourseName)
 
-        sessionTabsContainer =
-            findViewById(
-                R.id.sessionTabsContainer
-            )
+        sessionTabsContainer = findViewById(R.id.sessionTabsContainer)
 
-        tvSessionTitle =
-            findViewById(
-                R.id.tvSessionTitle
-            )
+        tvSessionTitle = findViewById(R.id.tvSessionTitle)
 
-        tvSessionSubtitle =
-            findViewById(
-                R.id.tvSessionSubtitle
-            )
+        tvSessionSubtitle = findViewById(R.id.tvSessionSubtitle)
 
-        tvStartDate =
-            findViewById(
-                R.id.tvStartDate
-            )
+        tvStartDate = findViewById(R.id.tvStartDate)
 
-        tvDeadlineDate =
-            findViewById(
-                R.id.tvDeadlineDate
-            )
+        tvDeadlineDate = findViewById(R.id.tvDeadlineDate)
 
-        materialContainer =
-            findViewById(
-                R.id.materialContainer
-            )
+        materialContainer = findViewById(R.id.materialContainer)
 
-        cardSessionTest =
-            findViewById(
-                R.id.cardSessionTest
-            )
+        cardSessionTest = findViewById(R.id.cardSessionTest)
 
-        cardFinalProject =
-            findViewById(
-                R.id.cardFinalProject
-            )
+        cardFinalProject = findViewById(R.id.cardFinalProject)
     }
 
     private fun setupListeners() {
@@ -202,772 +134,446 @@ class CourseSectionActivity : AppCompatActivity() {
 
         cardSessionTest.setOnClickListener {
 
-            val session =
-                selectedSession
+            val session = selectedSession
 
             if (session == null) {
                 return@setOnClickListener
             }
 
-            if (
-                !isSessionUnlocked(
-                    session.session_number
-                )
-            ) {
+            if (!isSessionUnlocked(session.session_number)) {
 
-                Toast.makeText(
-                    this,
-                    "Session masih terkunci",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Session masih terkunci", Toast.LENGTH_SHORT).show()
 
                 return@setOnClickListener
             }
 
-            val progress =
-                getProgressForSession(
-                    session.session_number
-                )
+            val progress = getProgressForSession(session.session_number)
 
-            val intent =
-                Intent(
-                    this,
-                    QuizActivity::class.java
-                )
+            val intent = Intent(this, QuizActivity::class.java)
 
-            intent.putExtra(
-                "SESSION_ID",
-                session.id
-            )
+            intent.putExtra("SESSION_ID", session.id)
 
-            intent.putExtra(
-                "SESSION_NUMBER",
-                session.session_number
-            )
+            intent.putExtra("SESSION_NUMBER", session.session_number)
 
-            intent.putExtra(
-                "COURSE_NAME",
-                currentCourse?.name ?: ""
-            )
+            intent.putExtra("COURSE_NAME", currentCourse?.name ?: "")
 
-            intent.putExtra(
-                "REVIEW_MODE",
-                progress?.status == "passed"
-            )
+            intent.putExtra("REVIEW_MODE", progress?.status == "passed")
 
             startActivity(intent)
         }
 
         cardFinalProject.setOnClickListener {
 
-            val session =
-                selectedSession
+            val session = selectedSession
 
-            if (
-                session == null ||
-                session.session_number != 5
-            ) {
+            if (session == null || session.session_number != 5) {
 
                 return@setOnClickListener
             }
 
-            val intent =
-                Intent(
-                    this,
-                    CaseStudyActivity::class.java
-                )
+            val intent = Intent(this, CaseStudyActivity::class.java)
 
-            intent.putExtra(
-                "COURSE_ID",
-                courseId
-            )
+            intent.putExtra("COURSE_ID", courseId)
 
-            startActivity(
-                intent
-            )
+            startActivity(intent)
         }
     }
 
     private fun setupObservers() {
 
-        courseViewModel.courseDetail
-            .observe(this) { course ->
+        courseViewModel.courseDetail.observe(this) { course ->
 
-                if (course != null) {
+            if (course != null) {
 
-                    currentCourse =
-                        course
+                currentCourse = course
 
-                    tvCourseName.text =
-                        course.name
+                tvCourseName.text = course.name
 
-                    createSessionTabs(
-                        course.sessions
-                    )
+                createSessionTabs(course.sessions)
 
-                    if (
-                        selectedSession == null &&
-                        course.sessions.isNotEmpty()
-                    ) {
+                if (selectedSession == null && course.sessions.isNotEmpty()) {
 
-                        selectSession(
-                            course.sessions.first()
-                        )
-                    }
+                    selectSession(course.sessions.first())
+                }
+            }
+        }
+
+        progressViewModel.courseProgress.observe(this) { result ->
+
+            result.onSuccess { response ->
+
+                progressSessions = response.sessions
+
+                currentCourse?.let { course ->
+
+                    createSessionTabs(course.sessions)
+                }
+
+                selectedSession?.let { session ->
+
+                    selectSession(session)
                 }
             }
 
-        progressViewModel.courseProgress
-            .observe(this) { result ->
+            result.onFailure { error ->
 
-                result.onSuccess { response ->
+                if (!isDemoAccount) {
 
-                    progressSessions =
-                        response.sessions
-
-                    currentCourse?.let { course ->
-
-                        createSessionTabs(
-                            course.sessions
-                        )
-                    }
-
-                    selectedSession?.let { session ->
-
-                        selectSession(
-                            session
-                        )
-                    }
-                }
-
-                result.onFailure { error ->
-
-                    if (!isDemoAccount) {
-
-                        Toast.makeText(
-                            this,
-                            error.message
-                                ?: "Failed to load progress",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    Toast.makeText(
+                        this, error.message ?: "Failed to load progress", Toast.LENGTH_LONG
+                    ).show()
                 }
             }
+        }
 
-        materialViewModel.materials
-            .observe(this) { result ->
+        materialViewModel.materials.observe(this) { result ->
 
-                result.onSuccess { response ->
+            result.onSuccess { response ->
 
-                    showMaterials(
-                        response.materials
-                    )
-                }
-
-                result.onFailure {
-
-                    materialContainer.removeAllViews()
-
-                    addEmptyMaterialMessage(
-                        "No materials available yet."
-                    )
-                }
+                showMaterials(response.materials)
             }
+
+            result.onFailure {
+
+                materialContainer.removeAllViews()
+
+                addEmptyMaterialMessage("No materials available yet.")
+            }
+        }
     }
 
     private fun loadProgress() {
 
-        val token =
-            sessionManager.getToken()
+        val token = sessionManager.getToken()
 
         if (token.isNullOrEmpty()) {
             return
         }
 
-        progressViewModel.loadCourseProgress(
-            token,
-            courseId
-        )
+        progressViewModel.loadCourseProgress(token, courseId)
     }
 
-    private fun createSessionTabs(
-        sessions: List<SessionResponse>
-    ) {
+    private fun createSessionTabs(sessions: List<SessionResponse>) {
 
         sessionTabsContainer.removeAllViews()
 
         sessions.forEach { session ->
 
-            val tab =
-                TextView(this)
+            val tab = TextView(this)
 
-            val params =
-                LinearLayout.LayoutParams(
-                    dpToPx(40),
-                    dpToPx(40)
-                )
+            val params = LinearLayout.LayoutParams(dpToPx(40), dpToPx(40))
 
-            params.marginEnd =
-                dpToPx(8)
+            params.marginEnd = dpToPx(8)
 
-            tab.layoutParams =
-                params
+            tab.layoutParams = params
 
-            tab.gravity =
-                Gravity.CENTER
+            tab.gravity = Gravity.CENTER
 
-            tab.text =
-                session.session_number.toString()
+            tab.text = session.session_number.toString()
 
-            tab.textSize =
-                14f
+            tab.textSize = 14f
 
-            tab.setTypeface(
-                tab.typeface,
-                Typeface.BOLD
-            )
+            tab.setTypeface(tab.typeface, Typeface.BOLD)
 
-            val unlocked =
-                isSessionUnlocked(
-                    session.session_number
-                )
+            val unlocked = isSessionUnlocked(session.session_number)
 
             if (unlocked) {
 
-                tab.alpha =
-                    1f
+                tab.alpha = 1f
 
-                tab.setBackgroundResource(
-                    R.drawable.bg_session_inactive
-                )
+                tab.setBackgroundResource(R.drawable.bg_session_inactive)
 
-                tab.setTextColor(
-                    getColor(
-                        R.color.blue
-                    )
-                )
+                tab.setTextColor(getColor(R.color.blue))
 
                 tab.setOnClickListener {
 
-                    selectSession(
-                        session
-                    )
+                    selectSession(session)
                 }
 
             } else {
 
-                tab.alpha =
-                    0.45f
+                tab.alpha = 0.45f
 
-                tab.setBackgroundResource(
-                    R.drawable.bg_session_inactive
-                )
+                tab.setBackgroundResource(R.drawable.bg_session_inactive)
 
-                tab.setTextColor(
-                    Color.parseColor(
-                        "#94A3B8"
-                    )
-                )
+                tab.setTextColor(Color.parseColor("#94A3B8"))
 
                 tab.setOnClickListener {
 
                     Toast.makeText(
-                        this,
-                        "Session ${session.session_number} masih terkunci",
-                        Toast.LENGTH_SHORT
+                        this, "Session ${session.session_number} masih terkunci", Toast.LENGTH_SHORT
                     ).show()
                 }
             }
 
-            sessionTabsContainer.addView(
-                tab
-            )
+            sessionTabsContainer.addView(tab)
         }
 
         selectedSession?.let {
 
-            updateSessionTabs(
-                it.session_number
-            )
+            updateSessionTabs(it.session_number)
         }
     }
 
-    private fun selectSession(
-        session: SessionResponse
-    ) {
+    private fun selectSession(session: SessionResponse) {
 
-        selectedSession =
-            session
+        selectedSession = session
 
-        tvSessionTitle.text =
-            "Session ${session.session_number}"
+        tvSessionTitle.text = "Session ${session.session_number}"
 
-        tvSessionSubtitle.text =
-            session.title
+        tvSessionSubtitle.text = session.title
 
-        updateSessionTabs(
-            session.session_number
-        )
+        updateSessionTabs(session.session_number)
 
-        showSessionDates(
-            session
-        )
+        showSessionDates(session)
 
         materialContainer.removeAllViews()
 
-        addEmptyMaterialMessage(
-            "Loading materials..."
-        )
+        addEmptyMaterialMessage("Loading materials...")
 
-        materialViewModel.loadSessionMaterials(
-            session.id
-        )
+        materialViewModel.loadSessionMaterials(session.id)
 
-        cardFinalProject.visibility =
-            if (
-                session.session_number == 5
-            ) {
+        cardFinalProject.visibility = if (session.session_number == 5) {
 
-                View.VISIBLE
-
-            } else {
-
-                View.GONE
-            }
-    }
-
-    private fun showSessionDates(
-        session: SessionResponse
-    ) {
-
-        val progress =
-            getProgressForSession(
-                session.session_number
-            )
-
-        if (progress != null) {
-
-            tvStartDate.text =
-                formatDate(
-                    progress.started_at
-                )
-
-            tvDeadlineDate.text =
-                formatDate(
-                    progress.deadline_at
-                )
-
-        } else if (
-            isDemoAccount
-        ) {
-
-            tvStartDate.text =
-                "Demo"
-
-            tvDeadlineDate.text =
-                "Demo"
+            View.VISIBLE
 
         } else {
 
-            tvStartDate.text =
-                "Locked"
-
-            tvDeadlineDate.text =
-                "Locked"
+            View.GONE
         }
     }
 
-    private fun showMaterials(
-        materials:
-        List<MaterialResponse>
-    ) {
+    private fun showSessionDates(session: SessionResponse) {
+
+        val progress = getProgressForSession(session.session_number)
+
+        if (progress != null) {
+
+            tvStartDate.text = formatDate(progress.started_at)
+
+            tvDeadlineDate.text = formatDate(progress.deadline_at)
+
+        } else if (isDemoAccount) {
+
+            tvStartDate.text = "Demo"
+
+            tvDeadlineDate.text = "Demo"
+
+        } else {
+
+            tvStartDate.text = "Locked"
+
+            tvDeadlineDate.text = "Locked"
+        }
+    }
+
+    private fun showMaterials(materials: List<MaterialResponse>) {
 
         materialContainer.removeAllViews()
 
         if (materials.isEmpty()) {
 
-            addEmptyMaterialMessage(
-                "No materials available yet."
-            )
+            addEmptyMaterialMessage("No materials available yet.")
 
             return
         }
 
         materials.forEach {
 
-            addMaterialCard(
-                it
-            )
+            addMaterialCard(it)
         }
     }
 
-    private fun addMaterialCard(
-        material:
-        MaterialResponse
-    ) {
+    private fun addMaterialCard(material: MaterialResponse) {
 
-        val card =
-            MaterialCardView(this)
+        val card = MaterialCardView(this)
 
-        val params =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-
-        params.bottomMargin =
-            dpToPx(10)
-
-        card.layoutParams =
-            params
-
-        card.radius =
-            dpToPx(12)
-                .toFloat()
-
-        card.cardElevation =
-            0f
-
-        card.strokeWidth =
-            dpToPx(1)
-
-        card.strokeColor =
-            Color.parseColor(
-                "#CBD5E1"
-            )
-
-        card.setCardBackgroundColor(
-            Color.WHITE
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         )
 
-        val content =
-            LinearLayout(this)
+        params.bottomMargin = dpToPx(10)
 
-        content.orientation =
-            LinearLayout.VERTICAL
+        card.layoutParams = params
 
-        content.setPadding(
-            dpToPx(14),
-            dpToPx(12),
-            dpToPx(14),
-            dpToPx(12)
-        )
+        card.radius = dpToPx(12).toFloat()
 
-        val title =
-            TextView(this)
+        card.cardElevation = 0f
 
-        title.text =
-            material.title
+        card.strokeWidth = dpToPx(1)
 
-        title.textSize =
-            14f
+        card.strokeColor = Color.parseColor("#CBD5E1")
 
-        title.setTypeface(
-            title.typeface,
-            Typeface.BOLD
-        )
+        card.setCardBackgroundColor(Color.WHITE)
 
-        title.setTextColor(
-            Color.parseColor(
-                "#0F172A"
-            )
-        )
+        val content = LinearLayout(this)
 
-        val type =
-            TextView(this)
+        content.orientation = LinearLayout.VERTICAL
 
-        type.text =
-            getMaterialTypeLabel(
-                material.type
-            )
+        content.setPadding(dpToPx(14), dpToPx(12), dpToPx(14), dpToPx(12))
 
-        type.textSize =
-            11f
+        val title = TextView(this)
 
-        type.setTextColor(
-            Color.parseColor(
-                "#64748B"
-            )
-        )
+        title.text = material.title
 
-        type.setPadding(
-            0,
-            dpToPx(4),
-            0,
-            0
-        )
+        title.textSize = 14f
 
-        content.addView(
-            title
-        )
+        title.setTypeface(title.typeface, Typeface.BOLD)
 
-        content.addView(
-            type
-        )
+        title.setTextColor(Color.parseColor("#0F172A"))
 
-        card.addView(
-            content
-        )
+        val type = TextView(this)
+
+        type.text = getMaterialTypeLabel(material.type)
+
+        type.textSize = 11f
+
+        type.setTextColor(Color.parseColor("#64748B"))
+
+        type.setPadding(0, dpToPx(4), 0, 0)
+
+        content.addView(title)
+
+        content.addView(type)
+
+        card.addView(content)
 
         card.setOnClickListener {
 
-            openMaterial(
-                material
-            )
+            openMaterial(material)
         }
 
-        materialContainer.addView(
-            card
-        )
+        materialContainer.addView(card)
     }
 
-    private fun openMaterial(
-        material:
-        MaterialResponse
-    ) {
+    private fun openMaterial(material: MaterialResponse) {
 
         try {
 
-            val intent =
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(
-                        material.url
-                    )
-                )
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(material.url))
 
-            startActivity(
-                intent
-            )
+            startActivity(intent)
 
-        } catch (
-            e: Exception
-        ) {
+        } catch (e: Exception) {
 
-            Toast.makeText(
-                this,
-                "Cannot open material",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Cannot open material", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun getMaterialTypeLabel(
-        type:
-        String
-    ): String {
+    private fun getMaterialTypeLabel(type: String): String {
 
-        return when (
-            type.lowercase()
-        ) {
+        return when (type.lowercase()) {
 
-            "pdf" ->
-                "PDF Material"
+            "pdf" -> "PDF Material"
 
-            "youtube" ->
-                "YouTube Video"
+            "youtube" -> "YouTube Video"
 
-            "website" ->
-                "Website"
+            "website" -> "Website"
 
-            else ->
-                "Learning Material"
+            else -> "Learning Material"
         }
     }
 
-    private fun addEmptyMaterialMessage(
-        message:
-        String
-    ) {
+    private fun addEmptyMaterialMessage(message: String) {
 
-        val text =
-            TextView(this)
+        val text = TextView(this)
 
-        text.text =
-            message
+        text.text = message
 
-        text.textSize =
-            13f
+        text.textSize = 13f
 
-        text.setTextColor(
-            Color.parseColor(
-                "#64748B"
-            )
-        )
+        text.setTextColor(Color.parseColor("#64748B"))
 
-        text.setPadding(
-            0,
-            dpToPx(8),
-            0,
-            dpToPx(8)
-        )
+        text.setPadding(0, dpToPx(8), 0, dpToPx(8))
 
-        materialContainer.addView(
-            text
-        )
+        materialContainer.addView(text)
     }
 
-    private fun updateSessionTabs(
-        selected:
-        Int
-    ) {
+    private fun updateSessionTabs(selected: Int) {
 
-        for (
-        i in 0 until
-                sessionTabsContainer.childCount
-        ) {
+        for (i in 0 until sessionTabsContainer.childCount) {
 
-            val tab =
-                sessionTabsContainer
-                    .getChildAt(i)
-                        as TextView
+            val tab = sessionTabsContainer.getChildAt(i) as TextView
 
-            val sessionNumber =
-                i + 1
+            val sessionNumber = i + 1
 
-            val unlocked =
-                isSessionUnlocked(
-                    sessionNumber
-                )
+            val unlocked = isSessionUnlocked(sessionNumber)
 
-            if (
-                unlocked &&
-                sessionNumber == selected
-            ) {
+            if (unlocked && sessionNumber == selected) {
 
-                tab.setBackgroundResource(
-                    R.drawable.bg_session_active
-                )
+                tab.setBackgroundResource(R.drawable.bg_session_active)
 
-                tab.setTextColor(
-                    Color.WHITE
-                )
+                tab.setTextColor(Color.WHITE)
 
-                tab.alpha =
-                    1f
+                tab.alpha = 1f
 
-            } else if (
-                unlocked
-            ) {
+            } else if (unlocked) {
 
-                tab.setBackgroundResource(
-                    R.drawable.bg_session_inactive
-                )
+                tab.setBackgroundResource(R.drawable.bg_session_inactive)
 
-                tab.setTextColor(
-                    getColor(
-                        R.color.blue
-                    )
-                )
+                tab.setTextColor(getColor(R.color.blue))
 
-                tab.alpha =
-                    1f
+                tab.alpha = 1f
 
             } else {
 
-                tab.setBackgroundResource(
-                    R.drawable.bg_session_inactive
-                )
+                tab.setBackgroundResource(R.drawable.bg_session_inactive)
 
-                tab.setTextColor(
-                    Color.parseColor(
-                        "#94A3B8"
-                    )
-                )
+                tab.setTextColor(Color.parseColor("#94A3B8"))
 
-                tab.alpha =
-                    0.45f
+                tab.alpha = 0.45f
             }
         }
     }
 
-    private fun getProgressForSession(
-        sessionNumber:
-        Int
-    ): SessionProgressResponse? {
+    private fun getProgressForSession(sessionNumber: Int): SessionProgressResponse? {
 
         return progressSessions.find {
 
-            it.session_number ==
-                    sessionNumber
+            it.session_number == sessionNumber
         }
     }
 
-    private fun isSessionUnlocked(
-        sessionNumber:
-        Int
-    ): Boolean {
+    private fun isSessionUnlocked(sessionNumber: Int): Boolean {
 
         if (isDemoAccount) {
             return true
         }
 
-        return getProgressForSession(
-            sessionNumber
-        ) != null
+        return getProgressForSession(sessionNumber) != null
     }
 
-    private fun formatDate(
-        rawDate:
-        String
-    ): String {
+    private fun formatDate(rawDate: String): String {
 
         return try {
 
-            val input =
-                SimpleDateFormat(
-                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                    Locale.US
-                )
+            val input = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 
-            input.timeZone =
-                TimeZone.getTimeZone(
-                    "UTC"
-                )
+            input.timeZone = TimeZone.getTimeZone("UTC")
 
-            val date =
-                input.parse(
-                    rawDate
-                )
+            val date = input.parse(rawDate)
 
-            val output =
-                SimpleDateFormat(
-                    "dd MMM yyyy, HH:mm",
-                    Locale.US
-                )
+            val output = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.US)
 
-            output.timeZone =
-                TimeZone.getDefault()
+            output.timeZone = TimeZone.getDefault()
 
             if (date != null) {
 
-                output.format(
-                    date
-                )
+                output.format(date)
 
             } else {
 
                 "-"
             }
 
-        } catch (
-            e: Exception
-        ) {
+        } catch (e: Exception) {
 
             "-"
         }
     }
 
-    private fun dpToPx(
-        dp:
-        Int
-    ): Int {
+    private fun dpToPx(dp: Int): Int {
 
-        return (
-                dp *
-                        resources
-                            .displayMetrics
-                            .density
-                ).toInt()
+        return (dp * resources.displayMetrics.density).toInt()
     }
 }

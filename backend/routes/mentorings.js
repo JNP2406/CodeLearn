@@ -5,15 +5,14 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 async function createNotificationOnce(
-    connection,
-    userId,
-    type,
-    title,
-    message
+  connection,
+  userId,
+  type,
+  title,
+  message,
 ) {
-    const [existing] =
-        await connection.query(
-            `
+  const [existing] = await connection.query(
+    `
             SELECT id
             FROM notifications
             WHERE user_id = ?
@@ -22,20 +21,15 @@ async function createNotificationOnce(
             AND message = ?
             LIMIT 1
             `,
-            [
-                userId,
-                type,
-                title,
-                message
-            ]
-        );
+    [userId, type, title, message],
+  );
 
-    if (existing.length > 0) {
-        return;
-    }
+  if (existing.length > 0) {
+    return;
+  }
 
-    await connection.query(
-        `
+  await connection.query(
+    `
         INSERT INTO notifications
         (
             user_id,
@@ -46,34 +40,26 @@ async function createNotificationOnce(
         )
         VALUES (?, ?, ?, ?, 0)
         `,
-        [
-            userId,
-            type,
-            title,
-            message
-        ]
-    );
+    [userId, type, title, message],
+  );
 }
 
 function mentoringRangeText(
-    courseName,
-    fromSession,
-    toSession,
-    includeFinalProject
+  courseName,
+  fromSession,
+  toSession,
+  includeFinalProject,
 ) {
-    if (includeFinalProject === 1) {
-        return `${courseName} · Session ${fromSession} to Final project`;
-    }
+  if (includeFinalProject === 1) {
+    return `${courseName} · Session ${fromSession} to Final project`;
+  }
 
-    return `${courseName} · Sessions ${fromSession}-${toSession}`;
+  return `${courseName} · Sessions ${fromSession}-${toSession}`;
 }
 
-async function syncMentoringEndedNotifications(
-    connection = db
-) {
-    const [mentorings] =
-        await connection.query(
-            `
+async function syncMentoringEndedNotifications(connection = db) {
+  const [mentorings] = await connection.query(
+    `
             SELECT
                 m.id,
                 m.student_id,
@@ -100,51 +86,48 @@ async function syncMentoringEndedNotifications(
                 'expired'
             )
             AND m.ended_at IS NOT NULL
-            `
-        );
+            `,
+  );
 
-    for (const mentoring of mentorings) {
-        const range =
-            mentoringRangeText(
-                mentoring.course_name,
-                mentoring.from_session,
-                mentoring.to_session,
-                mentoring.include_final_project
-            );
+  for (const mentoring of mentorings) {
+    const range = mentoringRangeText(
+      mentoring.course_name,
+      mentoring.from_session,
+      mentoring.to_session,
+      mentoring.include_final_project,
+    );
 
-        await createNotificationOnce(
-            connection,
-            mentoring.student_id,
-            "mentoring_ended",
-            `Mentoring with ${mentoring.mentor_name} ended`,
-            `${range} · The chat is now read-only.`
-        );
+    await createNotificationOnce(
+      connection,
+      mentoring.student_id,
+      "mentoring_ended",
+      `Mentoring with ${mentoring.mentor_name} ended`,
+      `${range} · The chat is now read-only.`,
+    );
 
-        await createNotificationOnce(
-            connection,
-            mentoring.mentor_id,
-            "mentoring_ended",
-            `Mentoring with ${mentoring.student_name} ended`,
-            `${range} · The chat is now read-only.`
-        );
-    }
+    await createNotificationOnce(
+      connection,
+      mentoring.mentor_id,
+      "mentoring_ended",
+      `Mentoring with ${mentoring.student_name} ended`,
+      `${range} · The chat is now read-only.`,
+    );
+  }
 }
 
-async function syncMentoringStatuses(
-    connection = db
-) {
-    await connection.query(
-        `
+async function syncMentoringStatuses(connection = db) {
+  await connection.query(
+    `
         UPDATE mentorings
         SET status = 'expired',
             ended_at = NOW()
         WHERE status = 'active'
         AND deadline_at < NOW()
-        `
-    );
+        `,
+  );
 
-    await connection.query(
-        `
+  await connection.query(
+    `
         UPDATE mentorings m
         SET
             m.status = 'completed',
@@ -167,11 +150,11 @@ async function syncMentoringStatuses(
             )
             AND sp.status = 'passed'
         )
-        `
-    );
+        `,
+  );
 
-    await connection.query(
-        `
+  await connection.query(
+    `
         UPDATE mentorings m
         SET
             m.status = 'completed',
@@ -187,30 +170,24 @@ async function syncMentoringStatuses(
                 'not_approved'
             )
         )
-        `
-    );
+        `,
+  );
 
-    await syncMentoringEndedNotifications(
-        connection
-    );
+  await syncMentoringEndedNotifications(connection);
 }
 
-router.get(
-    "/student/mentors",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Student access only"
-                });
-            }
+router.get("/student/mentors", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Student access only",
+      });
+    }
 
-            await syncMentoringStatuses();
+    await syncMentoringStatuses();
 
-            const [mentors] =
-                await db.query(
-                    `
+    const [mentors] = await db.query(
+      `
                     SELECT
                         u.id,
                         u.name,
@@ -231,28 +208,21 @@ router.get(
                         u.cover_image
                     HAVING active_mentees < 3
                     ORDER BY u.name ASC
-                    `
-                );
+                    `,
+    );
 
-            const mentorIds =
-                mentors.map(
-                    mentor => mentor.id
-                );
+    const mentorIds = mentors.map((mentor) => mentor.id);
 
-            if (mentorIds.length === 0) {
-                return res.status(200).json({
-                    mentors: []
-                });
-            }
+    if (mentorIds.length === 0) {
+      return res.status(200).json({
+        mentors: [],
+      });
+    }
 
-            const placeholders =
-                mentorIds
-                    .map(() => "?")
-                    .join(",");
+    const placeholders = mentorIds.map(() => "?").join(",");
 
-            const [specializations] =
-                await db.query(
-                    `
+    const [specializations] = await db.query(
+      `
                     SELECT
                         ms.mentor_id,
                         c.id AS course_id,
@@ -263,144 +233,93 @@ router.get(
                     WHERE ms.mentor_id IN (${placeholders})
                     ORDER BY c.name ASC
                     `,
-                    mentorIds
-                );
+      mentorIds,
+    );
 
-            const result =
-                mentors.map(
-                    mentor => ({
-                        id:
-                            mentor.id,
+    const result = mentors.map((mentor) => ({
+      id: mentor.id,
 
-                        name:
-                            mentor.name,
+      name: mentor.name,
 
-                        campus:
-                            mentor.campus,
+      campus: mentor.campus,
 
-                        profile_image:
-                            mentor.profile_image,
+      profile_image: mentor.profile_image,
 
-                        cover_image:
-                            mentor.cover_image,
+      cover_image: mentor.cover_image,
 
-                        active_mentees:
-                            Number(
-                                mentor.active_mentees
-                            ),
+      active_mentees: Number(mentor.active_mentees),
 
-                        specializations:
-                            specializations
-                                .filter(
-                                    item =>
-                                        item.mentor_id ===
-                                        mentor.id
-                                )
-                                .map(
-                                    item => ({
-                                        course_id:
-                                            item.course_id,
+      specializations: specializations
+        .filter((item) => item.mentor_id === mentor.id)
+        .map((item) => ({
+          course_id: item.course_id,
 
-                                        course_name:
-                                            item.course_name
-                                    })
-                                )
-                    })
-                );
+          course_name: item.course_name,
+        })),
+    }));
 
-            return res.status(200).json({
-                mentors: result
-            });
+    return res.status(200).json({
+      mentors: result,
+    });
+  } catch (error) {
+    console.error(error);
 
-        } catch (error) {
-            console.error(error);
+    return res.status(500).json({
+      message: "Failed to load mentors",
+    });
+  }
+});
 
-            return res.status(500).json({
-                message:
-                    "Failed to load mentors"
-            });
-        }
+router.post("/student/requests", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Student access only",
+      });
     }
-);
 
-router.post(
-    "/student/requests",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message:
-                        "Student access only"
-                });
-            }
+    await syncMentoringStatuses();
 
-            await syncMentoringStatuses();
+    const studentId = req.user.id;
 
-            const studentId =
-                req.user.id;
+    const {
+      mentor_id,
+      course_id,
+      from_session,
+      to_session,
+      include_final_project,
+    } = req.body;
 
-            const {
-                mentor_id,
-                course_id,
-                from_session,
-                to_session,
-                include_final_project
-            } = req.body;
+    const mentorId = Number(mentor_id);
 
-            const mentorId =
-                Number(
-                    mentor_id
-                );
+    const courseId = Number(course_id);
 
-            const courseId =
-                Number(
-                    course_id
-                );
+    const fromSession = Number(from_session);
 
-            const fromSession =
-                Number(
-                    from_session
-                );
+    const toSession = Number(to_session);
 
-            const toSession =
-                Number(
-                    to_session
-                );
+    const includeFinalProject = include_final_project ? 1 : 0;
 
-            const includeFinalProject =
-                include_final_project
-                    ? 1
-                    : 0;
+    if (!mentorId || !courseId || !fromSession || !toSession) {
+      return res.status(400).json({
+        message: "Mentor, course and session range are required",
+      });
+    }
 
-            if (
-                !mentorId ||
-                !courseId ||
-                !fromSession ||
-                !toSession
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Mentor, course and session range are required"
-                });
-            }
+    if (
+      fromSession < 1 ||
+      fromSession > 5 ||
+      toSession < 1 ||
+      toSession > 5 ||
+      toSession < fromSession
+    ) {
+      return res.status(400).json({
+        message: "Invalid session range",
+      });
+    }
 
-            if (
-                fromSession < 1 ||
-                fromSession > 5 ||
-                toSession < 1 ||
-                toSession > 5 ||
-                toSession < fromSession
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Invalid session range"
-                });
-            }
-
-            const [mentorRows] =
-                await db.query(
-                    `
+    const [mentorRows] = await db.query(
+      `
                     SELECT
                         id,
                         name
@@ -408,89 +327,66 @@ router.post(
                     WHERE id = ?
                     AND role = 'mentor'
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+      [mentorId],
+    );
 
-            if (mentorRows.length === 0) {
-                return res.status(404).json({
-                    message:
-                        "Mentor not found"
-                });
-            }
+    if (mentorRows.length === 0) {
+      return res.status(404).json({
+        message: "Mentor not found",
+      });
+    }
 
-            const [courseRows] =
-                await db.query(
-                    `
+    const [courseRows] = await db.query(
+      `
                     SELECT
                         id,
                         name
                     FROM courses
                     WHERE id = ?
                     `,
-                    [
-                        courseId
-                    ]
-                );
+      [courseId],
+    );
 
-            if (courseRows.length === 0) {
-                return res.status(404).json({
-                    message:
-                        "Course not found"
-                });
-            }
+    if (courseRows.length === 0) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
 
-            const [specializationRows] =
-                await db.query(
-                    `
+    const [specializationRows] = await db.query(
+      `
                     SELECT id
                     FROM mentor_specializations
                     WHERE mentor_id = ?
                     AND course_id = ?
                     `,
-                    [
-                        mentorId,
-                        courseId
-                    ]
-                );
+      [mentorId, courseId],
+    );
 
-            if (
-                specializationRows.length === 0
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Mentor does not specialize in this course"
-                });
-            }
+    if (specializationRows.length === 0) {
+      return res.status(400).json({
+        message: "Mentor does not specialize in this course",
+      });
+    }
 
-            const [activeMentorings] =
-                await db.query(
-                    `
+    const [activeMentorings] = await db.query(
+      `
                     SELECT COUNT(*) AS total
                     FROM mentorings
                     WHERE mentor_id = ?
                     AND status = 'active'
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+      [mentorId],
+    );
 
-            if (
-                Number(
-                    activeMentorings[0].total
-                ) >= 3
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Mentor already has 3 active mentees"
-                });
-            }
+    if (Number(activeMentorings[0].total) >= 3) {
+      return res.status(400).json({
+        message: "Mentor already has 3 active mentees",
+      });
+    }
 
-            const [existingPending] =
-                await db.query(
-                    `
+    const [existingPending] = await db.query(
+      `
                     SELECT id
                     FROM mentoring_requests
                     WHERE student_id = ?
@@ -499,25 +395,18 @@ router.post(
                     AND status = 'pending'
                     LIMIT 1
                     `,
-                    [
-                        studentId,
-                        mentorId,
-                        courseId
-                    ]
-                );
+      [studentId, mentorId, courseId],
+    );
 
-            if (
-                existingPending.length > 0
-            ) {
-                return res.status(400).json({
-                    message:
-                        "You already have a pending request for this mentor and course"
-                });
-            }
+    if (existingPending.length > 0) {
+      return res.status(400).json({
+        message:
+          "You already have a pending request for this mentor and course",
+      });
+    }
 
-            const [existingActive] =
-                await db.query(
-                    `
+    const [existingActive] = await db.query(
+      `
                     SELECT id
                     FROM mentorings
                     WHERE student_id = ?
@@ -526,25 +415,17 @@ router.post(
                     AND status = 'active'
                     LIMIT 1
                     `,
-                    [
-                        studentId,
-                        mentorId,
-                        courseId
-                    ]
-                );
+      [studentId, mentorId, courseId],
+    );
 
-            if (
-                existingActive.length > 0
-            ) {
-                return res.status(400).json({
-                    message:
-                        "You already have active mentoring with this mentor"
-                });
-            }
+    if (existingActive.length > 0) {
+      return res.status(400).json({
+        message: "You already have active mentoring with this mentor",
+      });
+    }
 
-            const [result] =
-                await db.query(
-                    `
+    const [result] = await db.query(
+      `
                     INSERT INTO mentoring_requests
                     (
                         student_id,
@@ -560,92 +441,73 @@ router.post(
                         ?, ?, ?, ?, ?, ?, 'pending'
                     )
                     `,
-                    [
-                        studentId,
-                        mentorId,
-                        courseId,
-                        fromSession,
-                        toSession,
-                        includeFinalProject
-                    ]
-                );
+      [
+        studentId,
+        mentorId,
+        courseId,
+        fromSession,
+        toSession,
+        includeFinalProject,
+      ],
+    );
 
-            const [studentRows] =
-                await db.query(
-                    `
+    const [studentRows] = await db.query(
+      `
                     SELECT name
                     FROM users
                     WHERE id = ?
                     LIMIT 1
                     `,
-                    [
-                        studentId
-                    ]
-                );
+      [studentId],
+    );
 
-            const studentName =
-                studentRows[0]?.name
-                    || "Student";
+    const studentName = studentRows[0]?.name || "Student";
 
-            const courseName =
-                courseRows[0]?.name
-                    || "Course";
+    const courseName = courseRows[0]?.name || "Course";
 
-            const range =
-                mentoringRangeText(
-                    courseName,
-                    fromSession,
-                    toSession,
-                    includeFinalProject
-                );
+    const range = mentoringRangeText(
+      courseName,
+      fromSession,
+      toSession,
+      includeFinalProject,
+    );
 
-            await createNotificationOnce(
-                db,
-                mentorId,
-                "mentoring_request",
-                `New request from ${studentName}`,
-                range
-            );
+    await createNotificationOnce(
+      db,
+      mentorId,
+      "mentoring_request",
+      `New request from ${studentName}`,
+      range,
+    );
 
-            return res.status(201).json({
-                message:
-                    "Mentoring request sent",
+    return res.status(201).json({
+      message: "Mentoring request sent",
 
-                request_id:
-                    result.insertId
-            });
+      request_id: result.insertId,
+    });
+  } catch (error) {
+    console.error(error);
 
-        } catch (error) {
-            console.error(error);
+    return res.status(500).json({
+      message: "Failed to send mentoring request",
+    });
+  }
+});
 
-            return res.status(500).json({
-                message:
-                    "Failed to send mentoring request"
-            });
-        }
+router.get("/student/dashboard", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Student access only",
+      });
     }
-);
 
-router.get(
-    "/student/dashboard",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message:
-                        "Student access only"
-                });
-            }
+    await syncMentoringStatuses();
 
-            await syncMentoringStatuses();
+    const studentId = req.user.id;
 
-            const studentId =
-                req.user.id;
-
-            const [mentorings] =
-                await db.query(
-                    `
+    const [mentorings] = await db.query(
+      `
                     SELECT
                         m.id AS mentoring_id,
                         m.mentor_id,
@@ -680,46 +542,35 @@ router.get(
                         END,
                         m.start_at DESC
                     `,
-                    [
-                        studentId
-                    ]
-                );
+      [studentId],
+    );
 
-            return res.status(200).json({
-                mentorings
-            });
+    return res.status(200).json({
+      mentorings,
+    });
+  } catch (error) {
+    console.error(error);
 
-        } catch (error) {
-            console.error(error);
+    return res.status(500).json({
+      message: "Failed to load student mentorings",
+    });
+  }
+});
 
-            return res.status(500).json({
-                message:
-                    "Failed to load student mentorings"
-            });
-        }
+router.get("/mentor/dashboard", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "mentor") {
+      return res.status(403).json({
+        message: "Mentor access only",
+      });
     }
-);
 
-router.get(
-    "/mentor/dashboard",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (req.user.role !== "mentor") {
-                return res.status(403).json({
-                    message:
-                        "Mentor access only"
-                });
-            }
+    await syncMentoringStatuses();
 
-            await syncMentoringStatuses();
+    const mentorId = req.user.id;
 
-            const mentorId =
-                req.user.id;
-
-            const [activeMentorings] =
-                await db.query(
-                    `
+    const [activeMentorings] = await db.query(
+      `
                     SELECT
                         m.id AS mentoring_id,
                         m.student_id,
@@ -748,14 +599,11 @@ router.get(
                     ORDER BY
                         m.deadline_at ASC
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+      [mentorId],
+    );
 
-            const [pendingRequests] =
-                await db.query(
-                    `
+    const [pendingRequests] = await db.query(
+      `
                     SELECT
                         mr.id AS request_id,
                         mr.student_id,
@@ -782,268 +630,188 @@ router.get(
                     ORDER BY
                         mr.created_at DESC
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+      [mentorId],
+    );
 
-            return res.status(200).json({
-                active_count:
-                    activeMentorings.length,
+    return res.status(200).json({
+      active_count: activeMentorings.length,
 
-                max_active:
-                    3,
+      max_active: 3,
 
-                active_mentorings:
-                    activeMentorings,
+      active_mentorings: activeMentorings,
 
-                pending_requests:
-                    pendingRequests
-            });
+      pending_requests: pendingRequests,
+    });
+  } catch (error) {
+    console.error(error);
 
-        } catch (error) {
-            console.error(error);
-
-            return res.status(500).json({
-                message:
-                    "Failed to load mentor dashboard"
-            });
-        }
-    }
-);
+    return res.status(500).json({
+      message: "Failed to load mentor dashboard",
+    });
+  }
+});
 
 router.patch(
-    "/requests/:requestId/respond",
-    authMiddleware,
-    async (req, res) => {
-        const connection =
-            await db.getConnection();
+  "/requests/:requestId/respond",
+  authMiddleware,
+  async (req, res) => {
+    const connection = await db.getConnection();
 
-        try {
-            if (req.user.role !== "mentor") {
-                return res.status(403).json({
-                    message:
-                        "Mentor access only"
-                });
-            }
+    try {
+      if (req.user.role !== "mentor") {
+        return res.status(403).json({
+          message: "Mentor access only",
+        });
+      }
 
-            await syncMentoringStatuses(
-                connection
-            );
+      await syncMentoringStatuses(connection);
 
-            const mentorId =
-                req.user.id;
+      const mentorId = req.user.id;
 
-            const requestId =
-                Number(
-                    req.params.requestId
-                );
+      const requestId = Number(req.params.requestId);
 
-            const {
-                action
-            } = req.body;
+      const { action } = req.body;
 
-            if (
-                ![
-                    "accept",
-                    "reject"
-                ].includes(
-                    action
-                )
-            ) {
-                return res.status(400).json({
-                    message:
-                        "Action must be accept or reject"
-                });
-            }
+      if (!["accept", "reject"].includes(action)) {
+        return res.status(400).json({
+          message: "Action must be accept or reject",
+        });
+      }
 
-            await connection.beginTransaction();
+      await connection.beginTransaction();
 
-            const [requests] =
-                await connection.query(
-                    `
+      const [requests] = await connection.query(
+        `
                     SELECT *
                     FROM mentoring_requests
                     WHERE id = ?
                     AND mentor_id = ?
                     FOR UPDATE
                     `,
-                    [
-                        requestId,
-                        mentorId
-                    ]
-                );
+        [requestId, mentorId],
+      );
 
-            if (
-                requests.length === 0
-            ) {
-                await connection.rollback();
+      if (requests.length === 0) {
+        await connection.rollback();
 
-                return res.status(404).json({
-                    message:
-                        "Mentoring request not found"
-                });
-            }
+        return res.status(404).json({
+          message: "Mentoring request not found",
+        });
+      }
 
-            const request =
-                requests[0];
+      const request = requests[0];
 
-            if (
-                request.status !== "pending"
-            ) {
-                await connection.rollback();
+      if (request.status !== "pending") {
+        await connection.rollback();
 
-                return res.status(400).json({
-                    message:
-                        "This request has already been responded to"
-                });
-            }
+        return res.status(400).json({
+          message: "This request has already been responded to",
+        });
+      }
 
-            const [mentorRows] =
-                await connection.query(
-                    `
+      const [mentorRows] = await connection.query(
+        `
                     SELECT name
                     FROM users
                     WHERE id = ?
                     LIMIT 1
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+        [mentorId],
+      );
 
-            const [courseRows] =
-                await connection.query(
-                    `
+      const [courseRows] = await connection.query(
+        `
                     SELECT name
                     FROM courses
                     WHERE id = ?
                     LIMIT 1
                     `,
-                    [
-                        request.course_id
-                    ]
-                );
+        [request.course_id],
+      );
 
-            const mentorName =
-                mentorRows[0]?.name
-                    || "Mentor";
+      const mentorName = mentorRows[0]?.name || "Mentor";
 
-            const courseName =
-                courseRows[0]?.name
-                    || "Course";
+      const courseName = courseRows[0]?.name || "Course";
 
-            const requestToSession =
-                request.to_session
-                    ?? request.from_session;
+      const requestToSession = request.to_session ?? request.from_session;
 
-            const requestRange =
-                mentoringRangeText(
-                    courseName,
-                    request.from_session,
-                    requestToSession,
-                    request.include_final_project ?? 0
-                );
+      const requestRange = mentoringRangeText(
+        courseName,
+        request.from_session,
+        requestToSession,
+        request.include_final_project ?? 0,
+      );
 
-            if (
-                action === "reject"
-            ) {
-                await connection.query(
-                    `
+      if (action === "reject") {
+        await connection.query(
+          `
                     UPDATE mentoring_requests
                     SET status = 'declined'
                     WHERE id = ?
                     `,
-                    [
-                        requestId
-                    ]
-                );
+          [requestId],
+        );
 
-                await createNotificationOnce(
-                    connection,
-                    request.student_id,
-                    "request_declined",
-                    `${mentorName} declined your request`,
-                    `${requestRange} · You can request another mentor.`
-                );
+        await createNotificationOnce(
+          connection,
+          request.student_id,
+          "request_declined",
+          `${mentorName} declined your request`,
+          `${requestRange} · You can request another mentor.`,
+        );
 
-                await connection.commit();
+        await connection.commit();
 
-                return res.status(200).json({
-                    message:
-                        "Mentoring request declined"
-                });
-            }
+        return res.status(200).json({
+          message: "Mentoring request declined",
+        });
+      }
 
-            const [activeRows] =
-                await connection.query(
-                    `
+      const [activeRows] = await connection.query(
+        `
                     SELECT COUNT(*) AS total
                     FROM mentorings
                     WHERE mentor_id = ?
                     AND status = 'active'
                     `,
-                    [
-                        mentorId
-                    ]
-                );
+        [mentorId],
+      );
 
-            if (
-                Number(
-                    activeRows[0].total
-                ) >= 3
-            ) {
-                await connection.rollback();
+      if (Number(activeRows[0].total) >= 3) {
+        await connection.rollback();
 
-                return res.status(400).json({
-                    message:
-                        "You already have 3 active mentees"
-                });
-            }
+        return res.status(400).json({
+          message: "You already have 3 active mentees",
+        });
+      }
 
-            const fromSession =
-                request.from_session;
+      const fromSession = request.from_session;
 
-            const toSession =
-                request.to_session
-                    ?? request.from_session;
+      const toSession = request.to_session ?? request.from_session;
 
-            const sessionCount =
-                toSession -
-                fromSession +
-                1;
+      const sessionCount = toSession - fromSession + 1;
 
-            let mentoringDays =
-                sessionCount * 7;
+      let mentoringDays = sessionCount * 7;
 
-            if (
-                request.include_final_project === 1
-            ) {
-                mentoringDays += 7;
-            }
+      if (request.include_final_project === 1) {
+        mentoringDays += 7;
+      }
 
-            const deadline =
-                new Date();
+      const deadline = new Date();
 
-            deadline.setDate(
-                deadline.getDate() +
-                mentoringDays
-            );
+      deadline.setDate(deadline.getDate() + mentoringDays);
 
-            await connection.query(
-                `
+      await connection.query(
+        `
                 UPDATE mentoring_requests
                 SET status = 'accepted'
                 WHERE id = ?
                 `,
-                [
-                    requestId
-                ]
-            );
+        [requestId],
+      );
 
-            const [result] =
-                await connection.query(
-                    `
+      const [result] = await connection.query(
+        `
                     INSERT INTO mentorings
                     (
                         request_id,
@@ -1065,70 +833,57 @@ router.patch(
                         'active'
                     )
                     `,
-                    [
-                        request.id,
-                        request.student_id,
-                        mentorId,
-                        request.course_id,
-                        fromSession,
-                        toSession,
-                        request.include_final_project ?? 0,
-                        deadline
-                    ]
-                );
+        [
+          request.id,
+          request.student_id,
+          mentorId,
+          request.course_id,
+          fromSession,
+          toSession,
+          request.include_final_project ?? 0,
+          deadline,
+        ],
+      );
 
-            await createNotificationOnce(
-                connection,
-                request.student_id,
-                "request_accepted",
-                `${mentorName} accepted your request`,
-                `${requestRange} · You can chat now.`
-            );
+      await createNotificationOnce(
+        connection,
+        request.student_id,
+        "request_accepted",
+        `${mentorName} accepted your request`,
+        `${requestRange} · You can chat now.`,
+      );
 
-            await connection.commit();
+      await connection.commit();
 
-            return res.status(200).json({
-                message:
-                    "Mentoring request accepted",
+      return res.status(200).json({
+        message: "Mentoring request accepted",
 
-                mentoring_id:
-                    result.insertId,
+        mentoring_id: result.insertId,
 
-                deadline_at:
-                    deadline
-            });
+        deadline_at: deadline,
+      });
+    } catch (error) {
+      await connection.rollback();
 
-        } catch (error) {
-            await connection.rollback();
+      console.error(error);
 
-            console.error(error);
-
-            return res.status(500).json({
-                message:
-                    "Failed to respond to mentoring request"
-            });
-
-        } finally {
-            connection.release();
-        }
+      return res.status(500).json({
+        message: "Failed to respond to mentoring request",
+      });
+    } finally {
+      connection.release();
     }
+  },
 );
 
-router.get(
-    "/:mentoringId/status",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            await syncMentoringStatuses();
+router.get("/:mentoringId/status", authMiddleware, async (req, res) => {
+  try {
+    await syncMentoringStatuses();
 
-            const mentoringId =
-                Number(
-                    req.params.mentoringId
-                );
+    const mentoringId = Number(req.params.mentoringId);
 
-            const [rows] =
-                await db.query(
-                    `
+    const [rows] = await db.query(
+      `
                     SELECT
                         id,
                         student_id,
@@ -1152,58 +907,42 @@ router.get(
                     )
                     LIMIT 1
                     `,
-                    [
-                        mentoringId,
-                        req.user.id,
-                        req.user.id
-                    ]
-                );
+      [mentoringId, req.user.id, req.user.id],
+    );
 
-            if (rows.length === 0) {
-                return res.status(404).json({
-                    message:
-                        "Mentoring not found"
-                });
-            }
-
-            const mentoring =
-                rows[0];
-
-            return res.status(200).json({
-                mentoring,
-                can_chat:
-                    mentoring.status ===
-                    "active"
-            });
-
-        } catch (error) {
-            console.error(error);
-
-            return res.status(500).json({
-                message:
-                    "Failed to load mentoring status"
-            });
-        }
+    if (rows.length === 0) {
+      return res.status(404).json({
+        message: "Mentoring not found",
+      });
     }
-);
 
-router.get(
-    "/mentor/calendar",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            if (req.user.role !== "mentor") {
-                return res.status(403).json({
-                    message:
-                        "Only mentors can access mentor calendar"
-                });
-            }
+    const mentoring = rows[0];
 
-            await syncMentoringStatuses();
+    return res.status(200).json({
+      mentoring,
+      can_chat: mentoring.status === "active",
+    });
+  } catch (error) {
+    console.error(error);
 
-            const [mentorings] =
-                await db.query(
-                    `
+    return res.status(500).json({
+      message: "Failed to load mentoring status",
+    });
+  }
+});
+
+router.get("/mentor/calendar", authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== "mentor") {
+      return res.status(403).json({
+        message: "Only mentors can access mentor calendar",
+      });
+    }
+
+    await syncMentoringStatuses();
+
+    const [mentorings] = await db.query(
+      `
                     SELECT
                         m.id AS mentoring_id,
                         m.student_id,
@@ -1238,27 +977,19 @@ router.get(
                         END,
                         m.deadline_at ASC
                     `,
-                    [
-                        req.user.id
-                    ]
-                );
+      [req.user.id],
+    );
 
-            return res.status(200).json({
-                mentorings
-            });
+    return res.status(200).json({
+      mentorings,
+    });
+  } catch (error) {
+    console.error("Mentor calendar error:", error);
 
-        } catch (error) {
-            console.error(
-                "Mentor calendar error:",
-                error
-            );
-
-            return res.status(500).json({
-                message:
-                    "Internal server error"
-            });
-        }
-    }
-);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
 
 module.exports = router;

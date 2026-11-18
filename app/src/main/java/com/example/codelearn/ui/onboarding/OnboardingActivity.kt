@@ -70,9 +70,7 @@ class OnboardingActivity : AppCompatActivity() {
                 1 -> {
                     if (viewModel.selectedRole.value == null) {
                         Toast.makeText(
-                            this,
-                            "Pilih Student atau Mentor terlebih dahulu.",
-                            Toast.LENGTH_SHORT
+                            this, "Pilih Student atau Mentor terlebih dahulu.", Toast.LENGTH_SHORT
                         ).show()
                     } else {
                         viewModel.nextPage()
@@ -83,18 +81,11 @@ class OnboardingActivity : AppCompatActivity() {
                     val role = viewModel.selectedRole.value
 
                     if (role == null) {
-                        Toast.makeText(
-                            this,
-                            "Role belum dipilih.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this, "Role belum dipilih.", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener
                     }
 
-                    val intent = Intent(
-                        this,
-                        SignUpActivity::class.java
-                    )
+                    val intent = Intent(this, SignUpActivity::class.java)
 
                     intent.putExtra("ROLE", role)
 
@@ -134,11 +125,9 @@ class OnboardingActivity : AppCompatActivity() {
             0 -> {
                 imgOnboarding.setImageResource(R.drawable.onboarding_1)
 
-                tvTitle.text =
-                    "Belajar coding jadi lebih mudah"
+                tvTitle.text = "Belajar coding jadi lebih mudah"
 
-                tvDescription.text =
-                    "Dari nol sampai paham, satu sesi dalam satu waktu."
+                tvDescription.text = "Dari nol sampai paham, satu sesi dalam satu waktu."
 
                 layoutBenefits.visibility = View.VISIBLE
                 layoutRoleSelection.visibility = View.GONE
@@ -152,11 +141,9 @@ class OnboardingActivity : AppCompatActivity() {
             1 -> {
                 imgOnboarding.setImageResource(R.drawable.onboarding_2)
 
-                tvTitle.text =
-                    "Kamu mau jadi apa di CodeLearn?"
+                tvTitle.text = "Kamu mau jadi apa di CodeLearn?"
 
-                tvDescription.text =
-                    "Pilih satu peran. Kamu bisa membaca detailnya di bawah."
+                tvDescription.text = "Pilih satu peran. Kamu bisa membaca detailnya di bawah."
 
                 layoutBenefits.visibility = View.GONE
                 layoutRoleSelection.visibility = View.VISIBLE
@@ -170,8 +157,7 @@ class OnboardingActivity : AppCompatActivity() {
             2 -> {
                 imgOnboarding.setImageResource(R.drawable.onboarding_3)
 
-                tvTitle.text =
-                    "Ayo mulai perjalananmu!"
+                tvTitle.text = "Ayo mulai perjalananmu!"
 
                 tvDescription.text =
                     "Buat akunmu sekarang, lalu mulai belajar atau berbagi pengetahuan bersama CodeLearn."

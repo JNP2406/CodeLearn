@@ -11,103 +11,62 @@ import kotlinx.coroutines.launch
 
 class CertificateViewModel : ViewModel() {
 
-    private val repository =
-        CertificateRepository()
+    private val repository = CertificateRepository()
 
-    private val _claimResult =
-        MutableLiveData<Result<ClaimCertificateResponse>>()
+    private val _claimResult = MutableLiveData<Result<ClaimCertificateResponse>>()
 
-    val claimResult:
-            LiveData<Result<ClaimCertificateResponse>> =
-        _claimResult
+    val claimResult: LiveData<Result<ClaimCertificateResponse>> = _claimResult
 
-    private val _certificates =
-        MutableLiveData<Result<CertificateListResponse>>()
+    private val _certificates = MutableLiveData<Result<CertificateListResponse>>()
 
-    val certificates:
-            LiveData<Result<CertificateListResponse>> =
-        _certificates
+    val certificates: LiveData<Result<CertificateListResponse>> = _certificates
 
-    fun claimCertificate(
-        token: String,
-        courseId: Int
-    ) {
+    fun claimCertificate(token: String, courseId: Int) {
 
         viewModelScope.launch {
 
             try {
 
-                val response =
-                    repository.claimCertificate(
-                        token,
-                        courseId
-                    )
+                val response = repository.claimCertificate(token, courseId)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _claimResult.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _claimResult.value = Result.success(response.body()!!)
 
                 } else {
 
                     _claimResult.value =
-                        Result.failure(
-                            Exception(
-                                "Claim certificate failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Claim certificate failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _claimResult.value =
-                    Result.failure(e)
+                _claimResult.value = Result.failure(e)
             }
         }
     }
 
-    fun loadMyCertificates(
-        token: String
-    ) {
+    fun loadMyCertificates(token: String) {
 
         viewModelScope.launch {
 
             try {
 
-                val response =
-                    repository.getMyCertificates(
-                        token
-                    )
+                val response = repository.getMyCertificates(token)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _certificates.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _certificates.value = Result.success(response.body()!!)
 
                 } else {
 
                     _certificates.value =
-                        Result.failure(
-                            Exception(
-                                "Load certificates failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Load certificates failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _certificates.value =
-                    Result.failure(e)
+                _certificates.value = Result.failure(e)
             }
         }
     }

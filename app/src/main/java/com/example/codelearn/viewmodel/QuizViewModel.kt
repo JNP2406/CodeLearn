@@ -13,41 +13,25 @@ import kotlinx.coroutines.launch
 
 class QuizViewModel : ViewModel() {
 
-    private val repository =
-        QuizRepository()
+    private val repository = QuizRepository()
 
-    private val _quiz =
-        MutableLiveData<Result<QuizResponse>>()
+    private val _quiz = MutableLiveData<Result<QuizResponse>>()
 
-    val quiz:
-            LiveData<Result<QuizResponse>> =
-        _quiz
+    val quiz: LiveData<Result<QuizResponse>> = _quiz
 
-    private val _quizResult =
-        MutableLiveData<Result<QuizResultResponse>>()
+    private val _quizResult = MutableLiveData<Result<QuizResultResponse>>()
 
-    val quizResult:
-            LiveData<Result<QuizResultResponse>> =
-        _quizResult
+    val quizResult: LiveData<Result<QuizResultResponse>> = _quizResult
 
-    private val _submitResult =
-        MutableLiveData<Result<QuizSubmitResponse>>()
+    private val _submitResult = MutableLiveData<Result<QuizSubmitResponse>>()
 
-    val submitResult:
-            LiveData<Result<QuizSubmitResponse>> =
-        _submitResult
+    val submitResult: LiveData<Result<QuizSubmitResponse>> = _submitResult
 
-    private val _isLoading =
-        MutableLiveData<Boolean>()
+    private val _isLoading = MutableLiveData<Boolean>()
 
-    val isLoading:
-            LiveData<Boolean> =
-        _isLoading
+    val isLoading: LiveData<Boolean> = _isLoading
 
-    fun loadQuiz(
-        token: String,
-        sessionId: Int
-    ) {
+    fun loadQuiz(token: String, sessionId: Int) {
 
         viewModelScope.launch {
 
@@ -55,36 +39,20 @@ class QuizViewModel : ViewModel() {
 
             try {
 
-                val response =
-                    repository.getQuiz(
-                        token,
-                        sessionId
-                    )
+                val response = repository.getQuiz(token, sessionId)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _quiz.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _quiz.value = Result.success(response.body()!!)
 
                 } else {
 
-                    _quiz.value =
-                        Result.failure(
-                            Exception(
-                                "Load quiz failed: ${response.code()}"
-                            )
-                        )
+                    _quiz.value = Result.failure(Exception("Load quiz failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _quiz.value =
-                    Result.failure(e)
+                _quiz.value = Result.failure(e)
 
             } finally {
 
@@ -93,10 +61,7 @@ class QuizViewModel : ViewModel() {
         }
     }
 
-    fun loadQuizResult(
-        token: String,
-        sessionId: Int
-    ) {
+    fun loadQuizResult(token: String, sessionId: Int) {
 
         viewModelScope.launch {
 
@@ -104,36 +69,21 @@ class QuizViewModel : ViewModel() {
 
             try {
 
-                val response =
-                    repository.getQuizResult(
-                        token,
-                        sessionId
-                    )
+                val response = repository.getQuizResult(token, sessionId)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _quizResult.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _quizResult.value = Result.success(response.body()!!)
 
                 } else {
 
                     _quizResult.value =
-                        Result.failure(
-                            Exception(
-                                "Load quiz result failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Load quiz result failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _quizResult.value =
-                    Result.failure(e)
+                _quizResult.value = Result.failure(e)
 
             } finally {
 
@@ -142,11 +92,7 @@ class QuizViewModel : ViewModel() {
         }
     }
 
-    fun submitQuiz(
-        token: String,
-        sessionId: Int,
-        request: QuizSubmitRequest
-    ) {
+    fun submitQuiz(token: String, sessionId: Int, request: QuizSubmitRequest) {
 
         viewModelScope.launch {
 
@@ -154,37 +100,21 @@ class QuizViewModel : ViewModel() {
 
             try {
 
-                val response =
-                    repository.submitQuiz(
-                        token,
-                        sessionId,
-                        request
-                    )
+                val response = repository.submitQuiz(token, sessionId, request)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _submitResult.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _submitResult.value = Result.success(response.body()!!)
 
                 } else {
 
                     _submitResult.value =
-                        Result.failure(
-                            Exception(
-                                "Submit quiz failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Submit quiz failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _submitResult.value =
-                    Result.failure(e)
+                _submitResult.value = Result.failure(e)
 
             } finally {
 

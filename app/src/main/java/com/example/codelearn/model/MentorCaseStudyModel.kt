@@ -41,11 +41,6 @@ data class MentorCaseStudyReview(
     val reviewed_at: String?
 )
 
-data class MentorReviewRequest(
-    val status: String
-)
+data class MentorReviewRequest(val status: String)
 
-data class MentorReviewResponse(
-    val message: String,
-    val status: String
-)
+data class MentorReviewResponse(val message: String, val status: String)

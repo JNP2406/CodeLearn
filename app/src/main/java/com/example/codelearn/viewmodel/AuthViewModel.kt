@@ -18,23 +18,13 @@ class AuthViewModel : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    fun register(
-        email: String,
-        password: String,
-        role: String,
-        name: String,
-        campus: String
-    ) {
+    fun register(email: String, password: String, role: String, name: String, campus: String) {
         viewModelScope.launch {
             _isLoading.value = true
 
             try {
                 val response = repository.register(
-                    email = email,
-                    password = password,
-                    role = role,
-                    name = name,
-                    campus = campus
+                    email = email, password = password, role = role, name = name, campus = campus
                 )
 
                 if (response.isSuccessful && response.body() != null) {
@@ -52,24 +42,17 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun login(
-        email: String,
-        password: String
-    ) {
+    fun login(email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
 
             try {
-                val response = repository.login(
-                    email = email,
-                    password = password
-                )
+                val response = repository.login(email = email, password = password)
 
                 if (response.isSuccessful && response.body() != null) {
                     _authResult.value = Result.success(response.body()!!)
                 } else {
-                    _authResult.value =
-                        Result.failure(Exception("Login gagal: ${response.code()}"))
+                    _authResult.value = Result.failure(Exception("Login gagal: ${response.code()}"))
                 }
 
             } catch (e: Exception) {

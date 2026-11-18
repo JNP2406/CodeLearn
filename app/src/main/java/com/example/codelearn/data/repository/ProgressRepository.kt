@@ -9,25 +9,13 @@ class ProgressRepository {
 
     private val apiService = ApiClient.apiService
 
-    suspend fun takeCourse(
-        token: String,
-        courseId: Int
-    ): Response<TakeCourseResponse> {
+    suspend fun takeCourse(token: String, courseId: Int): Response<TakeCourseResponse> {
 
-        return apiService.takeCourse(
-            token = "Bearer $token",
-            courseId = courseId
-        )
+        return apiService.takeCourse(token = "Bearer $token", courseId = courseId)
     }
 
-    suspend fun getCourseProgress(
-        token: String,
-        courseId: Int
-    ): Response<CourseProgressResponse> {
+    suspend fun getCourseProgress(token: String, courseId: Int): Response<CourseProgressResponse> {
 
-        return apiService.getCourseProgress(
-            token = "Bearer $token",
-            courseId = courseId
-        )
+        return apiService.getCourseProgress(token = "Bearer $token", courseId = courseId)
     }
 }

@@ -4,14 +4,9 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-async function resetExpiredSessions(
-    connection,
-    studentId,
-    courseId
-) {
-    const [expiredSessions] =
-        await connection.query(
-            `
+async function resetExpiredSessions(connection, studentId, courseId) {
+  const [expiredSessions] = await connection.query(
+    `
             SELECT
                 sp.id,
                 sp.session_id
@@ -23,30 +18,21 @@ async function resetExpiredSessions(
             AND sp.status = 'active'
             AND sp.deadline_at < NOW()
             `,
-            [
-                studentId,
-                courseId
-            ]
-        );
+    [studentId, courseId],
+  );
 
-    for (
-        const session
-        of expiredSessions
-    ) {
-        await connection.query(
-            `
+  for (const session of expiredSessions) {
+    await connection.query(
+      `
             DELETE FROM quiz_answers
             WHERE student_id = ?
             AND session_id = ?
             `,
-            [
-                studentId,
-                session.session_id
-            ]
-        );
+      [studentId, session.session_id],
+    );
 
-        await connection.query(
-            `
+    await connection.query(
+      `
             UPDATE session_progress
             SET
                 started_at = NOW(),
@@ -59,42 +45,27 @@ async function resetExpiredSessions(
                 quiz_score = NULL
             WHERE id = ?
             `,
-            [
-                session.id
-            ]
-        );
-    }
+      [session.id],
+    );
+  }
 }
 
-router.post(
-    "/take-course/:courseId",
-    authMiddleware,
-    async (req, res) => {
-        const connection =
-            await db.getConnection();
+router.post("/take-course/:courseId", authMiddleware, async (req, res) => {
+  const connection = await db.getConnection();
 
-        try {
-            const studentId =
-                req.user.id;
+  try {
+    const studentId = req.user.id;
 
-            const courseId =
-                parseInt(
-                    req.params.courseId
-                );
+    const courseId = parseInt(req.params.courseId);
 
-            if (
-                req.user.role !==
-                "student"
-            ) {
-                return res.status(403).json({
-                    message:
-                        "Only students can take courses"
-                });
-            }
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can take courses",
+      });
+    }
 
-            const [courses] =
-                await connection.query(
-                    `
+    const [courses] = await connection.query(
+      `
                     SELECT
                         id,
                         name,
@@ -102,23 +73,17 @@ router.post(
                     FROM courses
                     WHERE id = ?
                     `,
-                    [
-                        courseId
-                    ]
-                );
+      [courseId],
+    );
 
-            if (
-                courses.length === 0
-            ) {
-                return res.status(404).json({
-                    message:
-                        "Course not found"
-                });
-            }
+    if (courses.length === 0) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
 
-            const [existingProgress] =
-                await connection.query(
-                    `
+    const [existingProgress] = await connection.query(
+      `
                     SELECT
                         id,
                         current_session,
@@ -127,26 +92,18 @@ router.post(
                     WHERE student_id = ?
                     AND course_id = ?
                     `,
-                    [
-                        studentId,
-                        courseId
-                    ]
-                );
+      [studentId, courseId],
+    );
 
-            if (
-                existingProgress.length > 0
-            ) {
-                return res.status(409).json({
-                    message:
-                        "Course already taken",
-                    progress:
-                        existingProgress[0]
-                });
-            }
+    if (existingProgress.length > 0) {
+      return res.status(409).json({
+        message: "Course already taken",
+        progress: existingProgress[0],
+      });
+    }
 
-            const [sessions] =
-                await connection.query(
-                    `
+    const [sessions] = await connection.query(
+      `
                     SELECT
                         id,
                         session_number,
@@ -156,29 +113,21 @@ router.post(
                     AND session_number = 1
                     LIMIT 1
                     `,
-                    [
-                        courseId
-                    ]
-                );
+      [courseId],
+    );
 
-            if (
-                sessions.length === 0
-            ) {
-                return res.status(404).json({
-                    message:
-                        "Session 1 not found"
-                });
-            }
+    if (sessions.length === 0) {
+      return res.status(404).json({
+        message: "Session 1 not found",
+      });
+    }
 
-            const firstSession =
-                sessions[0];
+    const firstSession = sessions[0];
 
-            await connection
-                .beginTransaction();
+    await connection.beginTransaction();
 
-            const [courseProgressResult] =
-                await connection.query(
-                    `
+    const [courseProgressResult] = await connection.query(
+      `
                     INSERT INTO student_course_progress
                     (
                         student_id,
@@ -194,15 +143,11 @@ router.post(
                         NOW()
                     )
                     `,
-                    [
-                        studentId,
-                        courseId
-                    ]
-                );
+      [studentId, courseId],
+    );
 
-            const [sessionProgressResult] =
-                await connection.query(
-                    `
+    const [sessionProgressResult] = await connection.query(
+      `
                     INSERT INTO session_progress
                     (
                         student_id,
@@ -227,17 +172,13 @@ router.post(
                         NULL
                     )
                     `,
-                    [
-                        studentId,
-                        firstSession.id
-                    ]
-                );
+      [studentId, firstSession.id],
+    );
 
-            await connection.commit();
+    await connection.commit();
 
-            const [createdProgress] =
-                await connection.query(
-                    `
+    const [createdProgress] = await connection.query(
+      `
                     SELECT
                         sp.id,
                         sp.student_id,
@@ -255,74 +196,47 @@ router.post(
                         sp.session_id
                     WHERE sp.id = ?
                     `,
-                    [
-                        sessionProgressResult
-                            .insertId
-                    ]
-                );
+      [sessionProgressResult.insertId],
+    );
 
-            return res.status(201).json({
-                message:
-                    "Course started successfully",
-                course_progress_id:
-                    courseProgressResult
-                        .insertId,
-                course: {
-                    id: courses[0].id,
-                    name: courses[0].name
-                },
-                current_session:
-                    createdProgress[0]
-            });
+    return res.status(201).json({
+      message: "Course started successfully",
+      course_progress_id: courseProgressResult.insertId,
+      course: {
+        id: courses[0].id,
+        name: courses[0].name,
+      },
+      current_session: createdProgress[0],
+    });
+  } catch (error) {
+    await connection.rollback();
 
-        } catch (error) {
-            await connection.rollback();
+    console.error("Take course error:", error);
 
-            console.error(
-                "Take course error:",
-                error
-            );
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  } finally {
+    connection.release();
+  }
+});
 
-            return res.status(500).json({
-                message:
-                    "Internal server error"
-            });
+router.get("/course/:courseId", authMiddleware, async (req, res) => {
+  const connection = await db.getConnection();
 
-        } finally {
-            connection.release();
-        }
+  try {
+    const studentId = req.user.id;
+
+    const courseId = parseInt(req.params.courseId);
+
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can access course progress",
+      });
     }
-);
 
-router.get(
-    "/course/:courseId",
-    authMiddleware,
-    async (req, res) => {
-        const connection =
-            await db.getConnection();
-
-        try {
-            const studentId =
-                req.user.id;
-
-            const courseId =
-                parseInt(
-                    req.params.courseId
-                );
-
-            if (
-                req.user.role !==
-                "student"
-            ) {
-                return res.status(403).json({
-                    message:
-                        "Only students can access course progress"
-                });
-            }
-
-            const [courseProgress] =
-                await connection.query(
-                    `
+    const [courseProgress] = await connection.query(
+      `
                     SELECT
                         scp.id,
                         scp.student_id,
@@ -338,35 +252,23 @@ router.get(
                     WHERE scp.student_id = ?
                     AND scp.course_id = ?
                     `,
-                    [
-                        studentId,
-                        courseId
-                    ]
-                );
+      [studentId, courseId],
+    );
 
-            if (
-                courseProgress.length === 0
-            ) {
-                return res.status(404).json({
-                    message:
-                        "Course progress not found"
-                });
-            }
+    if (courseProgress.length === 0) {
+      return res.status(404).json({
+        message: "Course progress not found",
+      });
+    }
 
-            await connection
-                .beginTransaction();
+    await connection.beginTransaction();
 
-            await resetExpiredSessions(
-                connection,
-                studentId,
-                courseId
-            );
+    await resetExpiredSessions(connection, studentId, courseId);
 
-            await connection.commit();
+    await connection.commit();
 
-            const [sessionProgress] =
-                await connection.query(
-                    `
+    const [sessionProgress] = await connection.query(
+      `
                     SELECT
                         sp.id,
                         sp.session_id,
@@ -386,38 +288,25 @@ router.get(
                     ORDER BY
                         s.session_number ASC
                     `,
-                    [
-                        studentId,
-                        courseId
-                    ]
-                );
+      [studentId, courseId],
+    );
 
-            return res.status(200).json({
-                message:
-                    "Course progress retrieved successfully",
-                course_progress:
-                    courseProgress[0],
-                sessions:
-                    sessionProgress
-            });
+    return res.status(200).json({
+      message: "Course progress retrieved successfully",
+      course_progress: courseProgress[0],
+      sessions: sessionProgress,
+    });
+  } catch (error) {
+    await connection.rollback();
 
-        } catch (error) {
-            await connection.rollback();
+    console.error("Get course progress error:", error);
 
-            console.error(
-                "Get course progress error:",
-                error
-            );
-
-            return res.status(500).json({
-                message:
-                    "Internal server error"
-            });
-
-        } finally {
-            connection.release();
-        }
-    }
-);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  } finally {
+    connection.release();
+  }
+});
 
 module.exports = router;

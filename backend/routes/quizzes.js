@@ -4,21 +4,18 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.get(
-    "/session/:sessionId",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            const sessionId = parseInt(req.params.sessionId);
+router.get("/session/:sessionId", authMiddleware, async (req, res) => {
+  try {
+    const sessionId = parseInt(req.params.sessionId);
 
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Only students can access quizzes"
-                });
-            }
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can access quizzes",
+      });
+    }
 
-            const [sessions] = await db.query(
-                `
+    const [sessions] = await db.query(
+      `
                 SELECT
                     id,
                     course_id,
@@ -27,36 +24,36 @@ router.get(
                 FROM sessions
                 WHERE id = ?
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            if (sessions.length === 0) {
-                return res.status(404).json({
-                    message: "Session not found"
-                });
-            }
+    if (sessions.length === 0) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
 
-            const session = sessions[0];
+    const session = sessions[0];
 
-            const [users] = await db.query(
-                `
+    const [users] = await db.query(
+      `
                 SELECT id, is_demo
                 FROM users
                 WHERE id = ?
                 `,
-                [req.user.id]
-            );
+      [req.user.id],
+    );
 
-            if (users.length === 0) {
-                return res.status(404).json({
-                    message: "User not found"
-                });
-            }
+    if (users.length === 0) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
 
-            const isDemo = Boolean(users[0].is_demo);
+    const isDemo = Boolean(users[0].is_demo);
 
-            const [progress] = await db.query(
-                `
+    const [progress] = await db.query(
+      `
                 SELECT
                     id,
                     status,
@@ -66,26 +63,23 @@ router.get(
                 WHERE student_id = ?
                 AND session_id = ?
                 `,
-                [req.user.id, sessionId]
-            );
+      [req.user.id, sessionId],
+    );
 
-            if (!isDemo && progress.length === 0) {
-                return res.status(403).json({
-                    message: "Session is still locked"
-                });
-            }
+    if (!isDemo && progress.length === 0) {
+      return res.status(403).json({
+        message: "Session is still locked",
+      });
+    }
 
-            if (
-                progress.length > 0 &&
-                progress[0].status === "passed"
-            ) {
-                return res.status(409).json({
-                    message: "Session already passed"
-                });
-            }
+    if (progress.length > 0 && progress[0].status === "passed") {
+      return res.status(409).json({
+        message: "Session already passed",
+      });
+    }
 
-            const [questions] = await db.query(
-                `
+    const [questions] = await db.query(
+      `
                 SELECT
                     id,
                     question
@@ -93,14 +87,14 @@ router.get(
                 WHERE session_id = ?
                 ORDER BY id ASC
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            const quiz = [];
+    const quiz = [];
 
-            for (const question of questions) {
-                const [options] = await db.query(
-                    `
+    for (const question of questions) {
+      const [options] = await db.query(
+        `
                     SELECT
                         id,
                         option_text
@@ -108,54 +102,49 @@ router.get(
                     WHERE question_id = ?
                     ORDER BY id ASC
                     `,
-                    [question.id]
-                );
+        [question.id],
+      );
 
-                quiz.push({
-                    id: question.id,
-                    question: question.question,
-                    options
-                });
-            }
-
-            return res.status(200).json({
-                message: "Quiz retrieved successfully",
-                session: {
-                    id: session.id,
-                    course_id: session.course_id,
-                    session_number: session.session_number,
-                    title: session.title
-                },
-                total_questions: quiz.length,
-                questions: quiz
-            });
-
-        } catch (error) {
-            console.error("Get quiz error:", error);
-
-            return res.status(500).json({
-                message: "Internal server error"
-            });
-        }
+      quiz.push({
+        id: question.id,
+        question: question.question,
+        options,
+      });
     }
-);
 
-router.get(
-    "/session/:sessionId/result",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            const studentId = req.user.id;
-            const sessionId = parseInt(req.params.sessionId);
+    return res.status(200).json({
+      message: "Quiz retrieved successfully",
+      session: {
+        id: session.id,
+        course_id: session.course_id,
+        session_number: session.session_number,
+        title: session.title,
+      },
+      total_questions: quiz.length,
+      questions: quiz,
+    });
+  } catch (error) {
+    console.error("Get quiz error:", error);
 
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Only students can access quiz results"
-                });
-            }
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
 
-            const [progressRows] = await db.query(
-                `
+router.get("/session/:sessionId/result", authMiddleware, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const sessionId = parseInt(req.params.sessionId);
+
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can access quiz results",
+      });
+    }
+
+    const [progressRows] = await db.query(
+      `
                 SELECT
                     status,
                     quiz_score,
@@ -164,25 +153,25 @@ router.get(
                 WHERE student_id = ?
                 AND session_id = ?
                 `,
-                [studentId, sessionId]
-            );
+      [studentId, sessionId],
+    );
 
-            if (progressRows.length === 0) {
-                return res.status(404).json({
-                    message: "Quiz result not found"
-                });
-            }
+    if (progressRows.length === 0) {
+      return res.status(404).json({
+        message: "Quiz result not found",
+      });
+    }
 
-            const progress = progressRows[0];
+    const progress = progressRows[0];
 
-            if (progress.status !== "passed") {
-                return res.status(403).json({
-                    message: "Quiz has not been passed yet"
-                });
-            }
+    if (progress.status !== "passed") {
+      return res.status(403).json({
+        message: "Quiz has not been passed yet",
+      });
+    }
 
-            const [sessions] = await db.query(
-                `
+    const [sessions] = await db.query(
+      `
                 SELECT
                     id,
                     course_id,
@@ -191,17 +180,17 @@ router.get(
                 FROM sessions
                 WHERE id = ?
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            if (sessions.length === 0) {
-                return res.status(404).json({
-                    message: "Session not found"
-                });
-            }
+    if (sessions.length === 0) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
 
-            const [questions] = await db.query(
-                `
+    const [questions] = await db.query(
+      `
                 SELECT
                     id,
                     question
@@ -209,15 +198,15 @@ router.get(
                 WHERE session_id = ?
                 ORDER BY id ASC
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            const reviewQuestions = [];
-            let correctAnswers = 0;
+    const reviewQuestions = [];
+    let correctAnswers = 0;
 
-            for (const question of questions) {
-                const [options] = await db.query(
-                    `
+    for (const question of questions) {
+      const [options] = await db.query(
+        `
                     SELECT
                         id,
                         option_text,
@@ -226,11 +215,11 @@ router.get(
                     WHERE question_id = ?
                     ORDER BY id ASC
                     `,
-                    [question.id]
-                );
+        [question.id],
+      );
 
-                const [answerRows] = await db.query(
-                    `
+      const [answerRows] = await db.query(
+        `
                     SELECT option_id
                     FROM quiz_answers
                     WHERE student_id = ?
@@ -238,109 +227,92 @@ router.get(
                     AND question_id = ?
                     LIMIT 1
                     `,
-                    [
-                        studentId,
-                        sessionId,
-                        question.id
-                    ]
-                );
+        [studentId, sessionId, question.id],
+      );
 
-                const selectedOptionId =
-                    answerRows.length > 0
-                        ? answerRows[0].option_id
-                        : null;
+      const selectedOptionId =
+        answerRows.length > 0 ? answerRows[0].option_id : null;
 
-                const correctOption =
-                    options.find(
-                        option => Boolean(option.is_correct)
-                    );
+      const correctOption = options.find((option) =>
+        Boolean(option.is_correct),
+      );
 
-                if (
-                    correctOption &&
-                    selectedOptionId === correctOption.id
-                ) {
-                    correctAnswers++;
-                }
+      if (correctOption && selectedOptionId === correctOption.id) {
+        correctAnswers++;
+      }
 
-                reviewQuestions.push({
-                    id: question.id,
-                    question: question.question,
-                    selected_option_id: selectedOptionId,
-                    correct_option_id: correctOption
-                        ? correctOption.id
-                        : null,
-                    options: options.map(option => ({
-                        id: option.id,
-                        option_text: option.option_text
-                    }))
-                });
-            }
-
-            return res.status(200).json({
-                message: "Quiz result retrieved successfully",
-                session: sessions[0],
-                score: progress.quiz_score,
-                completed_at: progress.completed_at,
-                total_questions: questions.length,
-                correct_answers: correctAnswers,
-                passed: true,
-                questions: reviewQuestions
-            });
-
-        } catch (error) {
-            console.error("Get quiz result error:", error);
-
-            return res.status(500).json({
-                message: "Internal server error"
-            });
-        }
+      reviewQuestions.push({
+        id: question.id,
+        question: question.question,
+        selected_option_id: selectedOptionId,
+        correct_option_id: correctOption ? correctOption.id : null,
+        options: options.map((option) => ({
+          id: option.id,
+          option_text: option.option_text,
+        })),
+      });
     }
-);
 
-router.post(
-    "/session/:sessionId/submit",
-    authMiddleware,
-    async (req, res) => {
-        const connection = await db.getConnection();
+    return res.status(200).json({
+      message: "Quiz result retrieved successfully",
+      session: sessions[0],
+      score: progress.quiz_score,
+      completed_at: progress.completed_at,
+      total_questions: questions.length,
+      correct_answers: correctAnswers,
+      passed: true,
+      questions: reviewQuestions,
+    });
+  } catch (error) {
+    console.error("Get quiz result error:", error);
 
-        try {
-            const studentId = req.user.id;
-            const sessionId = parseInt(req.params.sessionId);
-            const answers = req.body.answers;
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
 
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Only students can submit quizzes"
-                });
-            }
+router.post("/session/:sessionId/submit", authMiddleware, async (req, res) => {
+  const connection = await db.getConnection();
 
-            if (!Array.isArray(answers)) {
-                return res.status(400).json({
-                    message: "Answers are required"
-                });
-            }
+  try {
+    const studentId = req.user.id;
+    const sessionId = parseInt(req.params.sessionId);
+    const answers = req.body.answers;
 
-            const [users] = await connection.query(
-                `
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can submit quizzes",
+      });
+    }
+
+    if (!Array.isArray(answers)) {
+      return res.status(400).json({
+        message: "Answers are required",
+      });
+    }
+
+    const [users] = await connection.query(
+      `
                 SELECT
                     id,
                     is_demo
                 FROM users
                 WHERE id = ?
                 `,
-                [studentId]
-            );
+      [studentId],
+    );
 
-            if (users.length === 0) {
-                return res.status(404).json({
-                    message: "User not found"
-                });
-            }
+    if (users.length === 0) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
 
-            const isDemo = Boolean(users[0].is_demo);
+    const isDemo = Boolean(users[0].is_demo);
 
-            const [sessions] = await connection.query(
-                `
+    const [sessions] = await connection.query(
+      `
                 SELECT
                     id,
                     course_id,
@@ -349,35 +321,35 @@ router.post(
                 FROM sessions
                 WHERE id = ?
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            if (sessions.length === 0) {
-                return res.status(404).json({
-                    message: "Session not found"
-                });
-            }
+    if (sessions.length === 0) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
 
-            const session = sessions[0];
+    const session = sessions[0];
 
-            const [questions] = await connection.query(
-                `
+    const [questions] = await connection.query(
+      `
                 SELECT id
                 FROM quiz_questions
                 WHERE session_id = ?
                 ORDER BY id ASC
                 `,
-                [sessionId]
-            );
+      [sessionId],
+    );
 
-            if (questions.length === 0) {
-                return res.status(404).json({
-                    message: "Quiz questions not found"
-                });
-            }
+    if (questions.length === 0) {
+      return res.status(404).json({
+        message: "Quiz questions not found",
+      });
+    }
 
-            const [progressRows] = await connection.query(
-                `
+    const [progressRows] = await connection.query(
+      `
                 SELECT
                     id,
                     status,
@@ -387,41 +359,32 @@ router.post(
                 WHERE student_id = ?
                 AND session_id = ?
                 `,
-                [studentId, sessionId]
-            );
+      [studentId, sessionId],
+    );
 
-            if (
-                progressRows.length > 0 &&
-                progressRows[0].status === "passed"
-            ) {
-                return res.status(409).json({
-                    message: "Session already passed"
-                });
-            }
+    if (progressRows.length > 0 && progressRows[0].status === "passed") {
+      return res.status(409).json({
+        message: "Session already passed",
+      });
+    }
 
-            if (
-                !isDemo &&
-                progressRows.length === 0
-            ) {
-                return res.status(403).json({
-                    message: "Session is still locked"
-                });
-            }
+    if (!isDemo && progressRows.length === 0) {
+      return res.status(403).json({
+        message: "Session is still locked",
+      });
+    }
 
-            let realCorrectAnswers = 0;
+    let realCorrectAnswers = 0;
 
-            for (const question of questions) {
-                const answer = answers.find(
-                    item =>
-                        item.question_id === question.id
-                );
+    for (const question of questions) {
+      const answer = answers.find((item) => item.question_id === question.id);
 
-                if (!answer) {
-                    continue;
-                }
+      if (!answer) {
+        continue;
+      }
 
-                const [validOption] = await connection.query(
-                    `
+      const [validOption] = await connection.query(
+        `
                     SELECT
                         id,
                         is_correct
@@ -430,18 +393,15 @@ router.post(
                     AND question_id = ?
                     LIMIT 1
                     `,
-                    [
-                        answer.option_id,
-                        question.id
-                    ]
-                );
+        [answer.option_id, question.id],
+      );
 
-                if (validOption.length === 0) {
-                    continue;
-                }
+      if (validOption.length === 0) {
+        continue;
+      }
 
-                await connection.query(
-                    `
+      await connection.query(
+        `
                     INSERT INTO quiz_answers
                     (
                         student_id,
@@ -453,79 +413,59 @@ router.post(
                     ON DUPLICATE KEY UPDATE
                         option_id = VALUES(option_id)
                     `,
-                    [
-                        studentId,
-                        sessionId,
-                        question.id,
-                        answer.option_id
-                    ]
-                );
+        [studentId, sessionId, question.id, answer.option_id],
+      );
 
-                if (Boolean(validOption[0].is_correct)) {
-                    realCorrectAnswers++;
-                }
-            }
+      if (Boolean(validOption[0].is_correct)) {
+        realCorrectAnswers++;
+      }
+    }
 
-            const totalQuestions = questions.length;
+    const totalQuestions = questions.length;
 
-            const correctAnswers =
-                isDemo
-                    ? totalQuestions
-                    : realCorrectAnswers;
+    const correctAnswers = isDemo ? totalQuestions : realCorrectAnswers;
 
-            const score = Math.round(
-                (correctAnswers / totalQuestions) * 100
-            );
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
 
-            const passed =
-                isDemo ||
-                correctAnswers >= 8;
+    const passed = isDemo || correctAnswers >= 8;
 
-            if (!passed) {
-                await connection.query(
-                    `
+    if (!passed) {
+      await connection.query(
+        `
                     UPDATE session_progress
                     SET quiz_score = ?
                     WHERE student_id = ?
                     AND session_id = ?
                     `,
-                    [
-                        score,
-                        studentId,
-                        sessionId
-                    ]
-                );
+        [score, studentId, sessionId],
+      );
 
-                return res.status(200).json({
-                    message: "Quiz completed",
-                    total_questions: totalQuestions,
-                    correct_answers: correctAnswers,
-                    score,
-                    passed: false,
-                    next_session_unlocked: false,
-                    next_session: null
-                });
-            }
+      return res.status(200).json({
+        message: "Quiz completed",
+        total_questions: totalQuestions,
+        correct_answers: correctAnswers,
+        score,
+        passed: false,
+        next_session_unlocked: false,
+        next_session: null,
+      });
+    }
 
-            await connection.beginTransaction();
+    await connection.beginTransaction();
 
-            const [existingProgress] =
-                await connection.query(
-                    `
+    const [existingProgress] = await connection.query(
+      `
                     SELECT id
                     FROM session_progress
                     WHERE student_id = ?
                     AND session_id = ?
                     `,
-                    [
-                        studentId,
-                        sessionId
-                    ]
-                );
+      [studentId, sessionId],
+    );
 
-            if (existingProgress.length === 0) {
-                await connection.query(
-                    `
+    if (existingProgress.length === 0) {
+      await connection.query(
+        `
                     INSERT INTO session_progress
                     (
                         student_id,
@@ -550,15 +490,11 @@ router.post(
                         ?
                     )
                     `,
-                    [
-                        studentId,
-                        sessionId,
-                        score
-                    ]
-                );
-            } else {
-                await connection.query(
-                    `
+        [studentId, sessionId, score],
+      );
+    } else {
+      await connection.query(
+        `
                     UPDATE session_progress
                     SET
                         status = 'passed',
@@ -567,17 +503,12 @@ router.post(
                     WHERE student_id = ?
                     AND session_id = ?
                     `,
-                    [
-                        score,
-                        studentId,
-                        sessionId
-                    ]
-                );
-            }
+        [score, studentId, sessionId],
+      );
+    }
 
-            const [nextSessions] =
-                await connection.query(
-                    `
+    const [nextSessions] = await connection.query(
+      `
                     SELECT
                         id,
                         session_number,
@@ -587,36 +518,28 @@ router.post(
                     AND session_number = ?
                     LIMIT 1
                     `,
-                    [
-                        session.course_id,
-                        session.session_number + 1
-                    ]
-                );
+      [session.course_id, session.session_number + 1],
+    );
 
-            let nextSession = null;
-            let nextSessionUnlocked = false;
+    let nextSession = null;
+    let nextSessionUnlocked = false;
 
-            if (nextSessions.length > 0) {
-                nextSession =
-                    nextSessions[0];
+    if (nextSessions.length > 0) {
+      nextSession = nextSessions[0];
 
-                const [existingNext] =
-                    await connection.query(
-                        `
+      const [existingNext] = await connection.query(
+        `
                         SELECT id
                         FROM session_progress
                         WHERE student_id = ?
                         AND session_id = ?
                         `,
-                        [
-                            studentId,
-                            nextSession.id
-                        ]
-                    );
+        [studentId, nextSession.id],
+      );
 
-                if (existingNext.length === 0) {
-                    await connection.query(
-                        `
+      if (existingNext.length === 0) {
+        await connection.query(
+          `
                         INSERT INTO session_progress
                         (
                             student_id,
@@ -641,59 +564,45 @@ router.post(
                             NULL
                         )
                         `,
-                        [
-                            studentId,
-                            nextSession.id
-                        ]
-                    );
-                }
+          [studentId, nextSession.id],
+        );
+      }
 
-                await connection.query(
-                    `
+      await connection.query(
+        `
                     UPDATE student_course_progress
                     SET current_session = ?
                     WHERE student_id = ?
                     AND course_id = ?
                     `,
-                    [
-                        nextSession.session_number,
-                        studentId,
-                        session.course_id
-                    ]
-                );
+        [nextSession.session_number, studentId, session.course_id],
+      );
 
-                nextSessionUnlocked =
-                    true;
-            }
-
-            await connection.commit();
-
-            return res.status(200).json({
-                message: "Quiz passed",
-                total_questions: totalQuestions,
-                correct_answers: correctAnswers,
-                score,
-                passed: true,
-                next_session_unlocked: nextSessionUnlocked,
-                next_session: nextSession
-            });
-
-        } catch (error) {
-            await connection.rollback();
-
-            console.error(
-                "Submit quiz error:",
-                error
-            );
-
-            return res.status(500).json({
-                message: "Internal server error"
-            });
-
-        } finally {
-            connection.release();
-        }
+      nextSessionUnlocked = true;
     }
-);
+
+    await connection.commit();
+
+    return res.status(200).json({
+      message: "Quiz passed",
+      total_questions: totalQuestions,
+      correct_answers: correctAnswers,
+      score,
+      passed: true,
+      next_session_unlocked: nextSessionUnlocked,
+      next_session: nextSession,
+    });
+  } catch (error) {
+    await connection.rollback();
+
+    console.error("Submit quiz error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  } finally {
+    connection.release();
+  }
+});
 
 module.exports = router;

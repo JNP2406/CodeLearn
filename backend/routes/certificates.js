@@ -4,22 +4,19 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post(
-    "/course/:courseId/claim",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            const studentId = req.user.id;
-            const courseId = parseInt(req.params.courseId);
+router.post("/course/:courseId/claim", authMiddleware, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const courseId = parseInt(req.params.courseId);
 
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Only students can claim certificates"
-                });
-            }
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can claim certificates",
+      });
+    }
 
-            const [approvedReviews] = await db.query(
-                `
+    const [approvedReviews] = await db.query(
+      `
                 SELECT
                     csr.id AS review_id,
                     m.mentor_id,
@@ -34,24 +31,19 @@ router.post(
                 ORDER BY csr.id DESC
                 LIMIT 1
                 `,
-                [
-                    studentId,
-                    courseId
-                ]
-            );
+      [studentId, courseId],
+    );
 
-            if (approvedReviews.length === 0) {
-                return res.status(403).json({
-                    message: "Case study has not been approved"
-                });
-            }
+    if (approvedReviews.length === 0) {
+      return res.status(403).json({
+        message: "Case study has not been approved",
+      });
+    }
 
-            const approvedReview =
-                approvedReviews[0];
+    const approvedReview = approvedReviews[0];
 
-            const [existingCertificates] =
-                await db.query(
-                    `
+    const [existingCertificates] = await db.query(
+      `
                     SELECT
                         id,
                         student_id,
@@ -65,27 +57,22 @@ router.post(
                     WHERE review_id = ?
                     LIMIT 1
                     `,
-                    [
-                        approvedReview.review_id
-                    ]
-                );
+      [approvedReview.review_id],
+    );
 
-            if (existingCertificates.length > 0) {
-                return res.status(200).json({
-                    message: "Certificate already claimed",
-                    certificate:
-                        existingCertificates[0]
-                });
-            }
+    if (existingCertificates.length > 0) {
+      return res.status(200).json({
+        message: "Certificate already claimed",
+        certificate: existingCertificates[0],
+      });
+    }
 
-            const certificateId =
-                `CL-${courseId}-${studentId}-${Date.now()}`;
+    const certificateId = `CL-${courseId}-${studentId}-${Date.now()}`;
 
-            const pdfUrl =
-                "/certificates/codelearn-certificate.pdf";
+    const pdfUrl = "/certificates/codelearn-certificate.pdf";
 
-            const [result] = await db.query(
-                `
+    const [result] = await db.query(
+      `
                 INSERT INTO student_certificates
                 (
                     student_id,
@@ -107,19 +94,18 @@ router.post(
                     NOW()
                 )
                 `,
-                [
-                    studentId,
-                    approvedReview.mentor_id,
-                    courseId,
-                    approvedReview.review_id,
-                    certificateId,
-                    pdfUrl
-                ]
-            );
+      [
+        studentId,
+        approvedReview.mentor_id,
+        courseId,
+        approvedReview.review_id,
+        certificateId,
+        pdfUrl,
+      ],
+    );
 
-            const [certificates] =
-                await db.query(
-                    `
+    const [certificates] = await db.query(
+      `
                     SELECT
                         id,
                         student_id,
@@ -132,48 +118,34 @@ router.post(
                     FROM student_certificates
                     WHERE id = ?
                     `,
-                    [
-                        result.insertId
-                    ]
-                );
+      [result.insertId],
+    );
 
-            return res.status(201).json({
-                message:
-                    "Certificate claimed successfully",
-                certificate:
-                    certificates[0]
-            });
+    return res.status(201).json({
+      message: "Certificate claimed successfully",
+      certificate: certificates[0],
+    });
+  } catch (error) {
+    console.error("Claim certificate error:", error);
 
-        } catch (error) {
-            console.error(
-                "Claim certificate error:",
-                error
-            );
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
 
-            return res.status(500).json({
-                message: "Internal server error"
-            });
-        }
+router.get("/my-certificates", authMiddleware, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+
+    if (req.user.role !== "student") {
+      return res.status(403).json({
+        message: "Only students can access certificates",
+      });
     }
-);
 
-router.get(
-    "/my-certificates",
-    authMiddleware,
-    async (req, res) => {
-        try {
-            const studentId =
-                req.user.id;
-
-            if (req.user.role !== "student") {
-                return res.status(403).json({
-                    message: "Only students can access certificates"
-                });
-            }
-
-            const [certificates] =
-                await db.query(
-                    `
+    const [certificates] = await db.query(
+      `
                     SELECT
                         sc.id,
                         sc.course_id,
@@ -187,28 +159,20 @@ router.get(
                     WHERE sc.student_id = ?
                     ORDER BY sc.claimed_at DESC
                     `,
-                    [
-                        studentId
-                    ]
-                );
+      [studentId],
+    );
 
-            return res.status(200).json({
-                message:
-                    "Certificates retrieved successfully",
-                certificates
-            });
+    return res.status(200).json({
+      message: "Certificates retrieved successfully",
+      certificates,
+    });
+  } catch (error) {
+    console.error("Get certificates error:", error);
 
-        } catch (error) {
-            console.error(
-                "Get certificates error:",
-                error
-            );
-
-            return res.status(500).json({
-                message: "Internal server error"
-            });
-        }
-    }
-);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+});
 
 module.exports = router;

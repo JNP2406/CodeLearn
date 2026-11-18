@@ -13,9 +13,7 @@ class CourseRepository {
         return apiService.getCourses()
     }
 
-    suspend fun getCourseDetail(
-        courseId: Int
-    ): Response<CourseDetailResponse> {
+    suspend fun getCourseDetail(courseId: Int): Response<CourseDetailResponse> {
         return apiService.getCourseDetail(courseId)
     }
 }

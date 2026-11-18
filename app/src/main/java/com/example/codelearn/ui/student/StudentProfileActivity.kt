@@ -40,9 +40,7 @@ class StudentProfileActivity : AppCompatActivity() {
     private var pendingUploadType: String? = null
 
     private val imagePicker =
-        registerForActivityResult(
-            ActivityResultContracts.GetContent()
-        ) { uri ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
                 uploadImage(uri)
             }
@@ -54,18 +52,12 @@ class StudentProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_student_profile
-        )
+        setContentView(R.layout.activity_student_profile)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
-        if (
-            !sessionManager.isLoggedIn() ||
-            token.isEmpty()
-        ) {
+        if (!sessionManager.isLoggedIn() || token.isEmpty()) {
             openSignIn()
             return
         }
@@ -81,10 +73,7 @@ class StudentProfileActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (
-            ::sessionManager.isInitialized &&
-            token.isNotEmpty()
-        ) {
+        if (::sessionManager.isInitialized && token.isNotEmpty()) {
             viewModel.loadProfile(token)
             viewModel.loadCertificates(token)
         }
@@ -102,11 +91,7 @@ class StudentProfileActivity : AppCompatActivity() {
 
         viewModel.message.observe(this) { message ->
             if (!message.isNullOrBlank()) {
-                Toast.makeText(
-                    this,
-                    message,
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
                 viewModel.clearMessage()
             }
@@ -114,301 +99,157 @@ class StudentProfileActivity : AppCompatActivity() {
     }
 
     private fun setupClicks() {
-        findViewById<View>(
-            R.id.btnEditProfile
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnEditProfile).setOnClickListener {
             showEditProfileDialog()
         }
 
-        findViewById<View>(
-            R.id.btnSignOut
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnSignOut).setOnClickListener {
             signOut()
         }
     }
 
     private fun setupNavigation() {
-        findViewById<View>(
-            R.id.navCourse
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    StudentHomeActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navCourse).setOnClickListener {
+            startActivity(Intent(this, StudentHomeActivity::class.java))
 
             finish()
         }
 
-        findViewById<View>(
-            R.id.navMentor
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    StudentMentorActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navMentor).setOnClickListener {
+            startActivity(Intent(this, StudentMentorActivity::class.java))
 
             finish()
         }
 
-        findViewById<View>(
-            R.id.navCalendar
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    StudentCalendarActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navCalendar).setOnClickListener {
+            startActivity(Intent(this, StudentCalendarActivity::class.java))
 
             finish()
         }
     }
 
-    private fun renderProfile(
-        profile: ProfileUser
-    ) {
-        findViewById<TextView>(
-            R.id.tvName
-        ).text =
-            profile.name ?: "Student"
+    private fun renderProfile(profile: ProfileUser) {
+        findViewById<TextView>(R.id.tvName).text = profile.name ?: "Student"
 
-        findViewById<TextView>(
-            R.id.tvCampus
-        ).text =
-            profile.campus ?: "No campus"
+        findViewById<TextView>(R.id.tvCampus).text = profile.campus ?: "No campus"
 
         AvatarHelper.show(
-            imageView =
-                findViewById<ImageView>(
-                    R.id.ivProfile
-                ),
-            initialView =
-                findViewById<TextView>(
-                    R.id.tvProfileInitial
-                ),
-            imagePath =
-                profile.profile_image,
-            name =
-                profile.name ?: "Student"
+            imageView = findViewById<ImageView>(R.id.ivProfile),
+            initialView = findViewById<TextView>(R.id.tvProfileInitial),
+            imagePath = profile.profile_image,
+            name = profile.name ?: "Student"
         )
 
-        val coverImage =
-            findViewById<ImageView>(
-                R.id.ivCover
-            )
+        val coverImage = findViewById<ImageView>(R.id.ivCover)
 
         if (!profile.cover_image.isNullOrBlank()) {
-            coverImage.load(
-                buildUrl(
-                    profile.cover_image
-                )
-            ) {
+            coverImage.load(buildUrl(profile.cover_image)) {
                 crossfade(true)
             }
         } else {
             coverImage.setImageDrawable(null)
 
-            coverImage.setBackgroundResource(
-                R.drawable.bg_student_cover
-            )
+            coverImage.setBackgroundResource(R.drawable.bg_student_cover)
         }
     }
 
-    private fun renderCertificates(
-        certificates: List<StudentCertificateResponse>
-    ) {
-        val container =
-            findViewById<LinearLayout>(
-                R.id.certificateContainer
-            )
+    private fun renderCertificates(certificates: List<StudentCertificateResponse>) {
+        val container = findViewById<LinearLayout>(R.id.certificateContainer)
 
-        val emptyText =
-            findViewById<TextView>(
-                R.id.tvEmptyCertificates
-            )
+        val emptyText = findViewById<TextView>(R.id.tvEmptyCertificates)
 
         container.removeAllViews()
 
         if (certificates.isEmpty()) {
-            emptyText.visibility =
-                View.VISIBLE
+            emptyText.visibility = View.VISIBLE
 
             return
         }
 
-        emptyText.visibility =
-            View.GONE
+        emptyText.visibility = View.GONE
 
         certificates.forEach { certificate ->
-            val card =
-                TextView(this)
+            val card = TextView(this)
 
             card.layoutParams =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    dp(64)
-                ).apply {
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(64)).apply {
                     bottomMargin = dp(10)
                 }
 
-            card.background =
-                getDrawable(
-                    R.drawable.bg_certificate_card
-                )
+            card.background = getDrawable(R.drawable.bg_certificate_card)
 
-            card.gravity =
-                Gravity.CENTER_VERTICAL
+            card.gravity = Gravity.CENTER_VERTICAL
 
-            card.setPadding(
-                dp(16),
-                0,
-                dp(16),
-                0
-            )
+            card.setPadding(dp(16), 0, dp(16), 0)
 
-            card.text =
-                "${certificate.course_name ?: "Course"} Certificate"
+            card.text = "${certificate.course_name ?: "Course"} Certificate"
 
-            card.setTextColor(
-                android.graphics.Color.parseColor(
-                    "#0F172A"
-                )
-            )
+            card.setTextColor(android.graphics.Color.parseColor("#0F172A"))
 
-            card.textSize =
-                14f
+            card.textSize = 14f
 
             card.setOnClickListener {
-                openCertificate(
-                    certificate
-                )
+                openCertificate(certificate)
             }
 
-            container.addView(
-                card
-            )
+            container.addView(card)
         }
     }
 
     private fun showEditProfileDialog() {
-        val dialog =
-            Dialog(this)
+        val dialog = Dialog(this)
 
-        dialog.requestWindowFeature(
-            Window.FEATURE_NO_TITLE
-        )
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
 
-        val view =
-            LayoutInflater
-                .from(this)
-                .inflate(
-                    R.layout.dialog_edit_student_profile,
-                    null
-                )
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_student_profile, null)
 
-        dialog.setContentView(
-            view
-        )
+        dialog.setContentView(view)
 
-        dialog.window
-            ?.setBackgroundDrawableResource(
-                android.R.color.transparent
-            )
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val etName =
-            view.findViewById<EditText>(
-                R.id.etName
-            )
+        val etName = view.findViewById<EditText>(R.id.etName)
 
-        val etCampus =
-            view.findViewById<EditText>(
-                R.id.etCampus
-            )
+        val etCampus = view.findViewById<EditText>(R.id.etCampus)
 
-        etName.setText(
-            currentProfile?.name
-                ?: sessionManager.getName()
-                ?: ""
-        )
+        etName.setText(currentProfile?.name ?: sessionManager.getName() ?: "")
 
-        etCampus.setText(
-            currentProfile?.campus
-                ?: sessionManager.getCampus()
-                ?: ""
-        )
+        etCampus.setText(currentProfile?.campus ?: sessionManager.getCampus() ?: "")
 
-        view.findViewById<View>(
-            R.id.btnChangePhoto
-        ).setOnClickListener {
-            pendingUploadType =
-                "profile"
+        view.findViewById<View>(R.id.btnChangePhoto).setOnClickListener {
+            pendingUploadType = "profile"
 
-            imagePicker.launch(
-                "image/*"
-            )
+            imagePicker.launch("image/*")
         }
 
-        view.findViewById<View>(
-            R.id.btnChangeCover
-        ).setOnClickListener {
-            pendingUploadType =
-                "cover"
+        view.findViewById<View>(R.id.btnChangeCover).setOnClickListener {
+            pendingUploadType = "cover"
 
-            imagePicker.launch(
-                "image/*"
-            )
+            imagePicker.launch("image/*")
         }
 
-        view.findViewById<View>(
-            R.id.btnCancel
-        ).setOnClickListener {
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener {
             dialog.dismiss()
         }
 
-        view.findViewById<View>(
-            R.id.btnSave
-        ).setOnClickListener {
-            val name =
-                etName.text
-                    .toString()
-                    .trim()
+        view.findViewById<View>(R.id.btnSave).setOnClickListener {
+            val name = etName.text.toString().trim()
 
-            val campus =
-                etCampus.text
-                    .toString()
-                    .trim()
+            val campus = etCampus.text.toString().trim()
 
             if (name.isEmpty()) {
-                Toast.makeText(
-                    this,
-                    "Name is required",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Name is required", Toast.LENGTH_SHORT).show()
 
                 return@setOnClickListener
             }
 
-            viewModel.updateProfile(
-                token,
-                name,
-                campus
-            )
+            viewModel.updateProfile(token, name, campus)
 
             dialog.dismiss()
         }
 
         dialog.setOnShowListener {
             dialog.window?.setLayout(
-                (
-                        resources
-                            .displayMetrics
-                            .widthPixels *
-                                0.86
-                        ).toInt(),
+                (resources.displayMetrics.widthPixels * 0.86).toInt(),
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
@@ -416,142 +257,74 @@ class StudentProfileActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun uploadImage(
-        uri: Uri
-    ) {
-        val bytes =
-            contentResolver
-                .openInputStream(uri)
-                ?.use {
-                    it.readBytes()
-                }
-                ?: return
+    private fun uploadImage(uri: Uri) {
+        val bytes = contentResolver.openInputStream(uri)?.use {
+            it.readBytes()
+        } ?: return
 
-        val mimeType =
-            contentResolver.getType(uri)
-                ?: "image/jpeg"
+        val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
 
-        val extension =
-            when (mimeType) {
-                "image/png" ->
-                    "png"
+        val extension = when (mimeType) {
+            "image/png" -> "png"
 
-                "image/webp" ->
-                    "webp"
+            "image/webp" -> "webp"
 
-                else ->
-                    "jpg"
-            }
+            else -> "jpg"
+        }
 
-        val requestBody =
-            bytes.toRequestBody(
-                mimeType.toMediaTypeOrNull()
-            )
+        val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
 
-        if (
-            pendingUploadType == "profile"
-        ) {
-            val imageView =
-                findViewById<ImageView>(
-                    R.id.ivProfile
-                )
+        if (pendingUploadType == "profile") {
+            val imageView = findViewById<ImageView>(R.id.ivProfile)
 
-            val initialView =
-                findViewById<TextView>(
-                    R.id.tvProfileInitial
-                )
+            val initialView = findViewById<TextView>(R.id.tvProfileInitial)
 
-            imageView.visibility =
-                View.VISIBLE
+            imageView.visibility = View.VISIBLE
 
-            initialView.visibility =
-                View.GONE
+            initialView.visibility = View.GONE
 
             imageView.load(uri)
 
-            val part =
-                MultipartBody.Part.createFormData(
-                    "profile_image",
-                    "profile-${System.currentTimeMillis()}.$extension",
-                    requestBody
-                )
-
-            viewModel.uploadProfileImage(
-                token,
-                part
+            val part = MultipartBody.Part.createFormData(
+                "profile_image", "profile-${System.currentTimeMillis()}.$extension", requestBody
             )
+
+            viewModel.uploadProfileImage(token, part)
         }
 
-        if (
-            pendingUploadType == "cover"
-        ) {
-            findViewById<ImageView>(
-                R.id.ivCover
-            ).load(uri)
+        if (pendingUploadType == "cover") {
+            findViewById<ImageView>(R.id.ivCover).load(uri)
 
-            val part =
-                MultipartBody.Part.createFormData(
-                    "cover_image",
-                    "cover-${System.currentTimeMillis()}.$extension",
-                    requestBody
-                )
-
-            viewModel.uploadCoverImage(
-                token,
-                part
+            val part = MultipartBody.Part.createFormData(
+                "cover_image", "cover-${System.currentTimeMillis()}.$extension", requestBody
             )
+
+            viewModel.uploadCoverImage(token, part)
         }
 
-        pendingUploadType =
-            null
+        pendingUploadType = null
     }
 
-    private fun openCertificate(
-        certificate: StudentCertificateResponse
-    ) {
-        val path =
-            certificate.pdf_url
+    private fun openCertificate(certificate: StudentCertificateResponse) {
+        val path = certificate.pdf_url
 
         if (path.isNullOrBlank()) {
-            Toast.makeText(
-                this,
-                "Certificate file unavailable",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Certificate file unavailable", Toast.LENGTH_SHORT).show()
 
             return
         }
 
-        val url =
-            buildUrl(path)
+        val url = buildUrl(path)
 
         try {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(url)
-                )
-            )
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (_: Exception) {
-            Toast.makeText(
-                this,
-                "Cannot open certificate",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Cannot open certificate", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun buildUrl(
-        path: String
-    ): String {
-        if (
-            path.startsWith(
-                "http://"
-            ) ||
-            path.startsWith(
-                "https://"
-            )
-        ) {
+    private fun buildUrl(path: String): String {
+        if (path.startsWith("http://") || path.startsWith("https://")) {
             return path
         }
 
@@ -564,31 +337,16 @@ class StudentProfileActivity : AppCompatActivity() {
     }
 
     private fun openSignIn() {
-        val intent =
-            Intent(
-                this,
-                SignInActivity::class.java
-            )
+        val intent = Intent(this, SignInActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-        startActivity(
-            intent
-        )
+        startActivity(intent)
 
         finish()
     }
 
-    private fun dp(
-        value: Int
-    ): Int {
-        return (
-                value *
-                        resources
-                            .displayMetrics
-                            .density
-                ).toInt()
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
     }
 }

@@ -2,9 +2,7 @@ package com.example.codelearn.model
 
 import java.time.LocalDate
 
-data class MentorCalendarResponse(
-    val mentorings: List<MentorCalendarItem>
-)
+data class MentorCalendarResponse(val mentorings: List<MentorCalendarItem>)
 
 data class MentorCalendarItem(
     val mentoring_id: Int,
@@ -24,8 +22,5 @@ data class MentorCalendarItem(
 )
 
 data class MentorCalendarEvent(
-    val date: LocalDate,
-    val title: String,
-    val subtitle: String,
-    val type: String
+    val date: LocalDate, val title: String, val subtitle: String, val type: String
 )

@@ -6,17 +6,10 @@ import retrofit2.Response
 
 class CaseStudyRepository {
 
-    private val apiService =
-        ApiClient.apiService
+    private val apiService = ApiClient.apiService
 
-    suspend fun getCaseStudy(
-        token: String,
-        courseId: Int
-    ): Response<CaseStudyResponse> {
+    suspend fun getCaseStudy(token: String, courseId: Int): Response<CaseStudyResponse> {
 
-        return apiService.getCaseStudy(
-            "Bearer $token",
-            courseId
-        )
+        return apiService.getCaseStudy("Bearer $token", courseId)
     }
 }

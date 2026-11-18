@@ -22,16 +22,13 @@ class MainActivity : AppCompatActivity() {
                 val response = ApiClient.apiService.checkHealth()
 
                 if (response.isSuccessful) {
-                    tvApiStatus.text =
-                        response.body()?.message ?: "API connected"
+                    tvApiStatus.text = response.body()?.message ?: "API connected"
                 } else {
-                    tvApiStatus.text =
-                        "API error: ${response.code()}"
+                    tvApiStatus.text = "API error: ${response.code()}"
                 }
 
             } catch (e: Exception) {
-                tvApiStatus.text =
-                    "Connection failed: ${e.message}"
+                tvApiStatus.text = "Connection failed: ${e.message}"
             }
         }
     }

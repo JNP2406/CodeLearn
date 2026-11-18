@@ -13,34 +13,22 @@ class ProgressViewModel : ViewModel() {
 
     private val repository = ProgressRepository()
 
-    private val _takeCourseResult =
-        MutableLiveData<Result<TakeCourseResponse>>()
+    private val _takeCourseResult = MutableLiveData<Result<TakeCourseResponse>>()
 
-    val takeCourseResult:
-            LiveData<Result<TakeCourseResponse>> =
-        _takeCourseResult
+    val takeCourseResult: LiveData<Result<TakeCourseResponse>> = _takeCourseResult
 
 
-    private val _courseProgress =
-        MutableLiveData<Result<CourseProgressResponse>>()
+    private val _courseProgress = MutableLiveData<Result<CourseProgressResponse>>()
 
-    val courseProgress:
-            LiveData<Result<CourseProgressResponse>> =
-        _courseProgress
+    val courseProgress: LiveData<Result<CourseProgressResponse>> = _courseProgress
 
 
-    private val _isLoading =
-        MutableLiveData(false)
+    private val _isLoading = MutableLiveData(false)
 
-    val isLoading:
-            LiveData<Boolean> =
-        _isLoading
+    val isLoading: LiveData<Boolean> = _isLoading
 
 
-    fun takeCourse(
-        token: String,
-        courseId: Int
-    ) {
+    fun takeCourse(token: String, courseId: Int) {
 
         viewModelScope.launch {
 
@@ -48,36 +36,21 @@ class ProgressViewModel : ViewModel() {
 
             try {
 
-                val response =
-                    repository.takeCourse(
-                        token = token,
-                        courseId = courseId
-                    )
+                val response = repository.takeCourse(token = token, courseId = courseId)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _takeCourseResult.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _takeCourseResult.value = Result.success(response.body()!!)
 
                 } else {
 
                     _takeCourseResult.value =
-                        Result.failure(
-                            Exception(
-                                "Take course failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Take course failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _takeCourseResult.value =
-                    Result.failure(e)
+                _takeCourseResult.value = Result.failure(e)
 
             } finally {
 
@@ -87,10 +60,7 @@ class ProgressViewModel : ViewModel() {
     }
 
 
-    fun loadCourseProgress(
-        token: String,
-        courseId: Int
-    ) {
+    fun loadCourseProgress(token: String, courseId: Int) {
 
         viewModelScope.launch {
 
@@ -98,36 +68,21 @@ class ProgressViewModel : ViewModel() {
 
             try {
 
-                val response =
-                    repository.getCourseProgress(
-                        token = token,
-                        courseId = courseId
-                    )
+                val response = repository.getCourseProgress(token = token, courseId = courseId)
 
-                if (
-                    response.isSuccessful &&
-                    response.body() != null
-                ) {
+                if (response.isSuccessful && response.body() != null) {
 
-                    _courseProgress.value =
-                        Result.success(
-                            response.body()!!
-                        )
+                    _courseProgress.value = Result.success(response.body()!!)
 
                 } else {
 
                     _courseProgress.value =
-                        Result.failure(
-                            Exception(
-                                "Load progress failed: ${response.code()}"
-                            )
-                        )
+                        Result.failure(Exception("Load progress failed: ${response.code()}"))
                 }
 
             } catch (e: Exception) {
 
-                _courseProgress.value =
-                    Result.failure(e)
+                _courseProgress.value = Result.failure(e)
 
             } finally {
 

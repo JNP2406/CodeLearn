@@ -23,11 +23,9 @@ import com.example.codelearn.viewmodel.StudentMentorViewModel
 
 class StudentMentorActivity : AppCompatActivity() {
 
-    private val viewModel:
-            StudentMentorViewModel by viewModels()
+    private val viewModel: StudentMentorViewModel by viewModels()
 
-    private lateinit var sessionManager:
-            SessionManager
+    private lateinit var sessionManager: SessionManager
 
     private val token: String
         get() = sessionManager.getToken() ?: ""
@@ -35,13 +33,10 @@ class StudentMentorActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_student_mentor
-        )
+        setContentView(R.layout.activity_student_mentor)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
         setupObservers()
         setupClicks()
@@ -54,34 +49,21 @@ class StudentMentorActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (
-            ::sessionManager.isInitialized &&
-            token.isNotBlank()
-        ) {
+        if (::sessionManager.isInitialized && token.isNotBlank()) {
             viewModel.loadMentorings(token)
 
-            NotificationBadgeHelper.refresh(
-                this,
-                sessionManager,
-                R.id.tvNotificationBadge
-            )
+            NotificationBadgeHelper.refresh(this, sessionManager, R.id.tvNotificationBadge)
         }
     }
 
     private fun setupObservers() {
         viewModel.mentorings.observe(this) { mentorings ->
-            renderMentorings(
-                mentorings
-            )
+            renderMentorings(mentorings)
         }
 
         viewModel.message.observe(this) { message ->
             if (!message.isNullOrBlank()) {
-                Toast.makeText(
-                    this,
-                    message,
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
                 viewModel.clearMessage()
             }
@@ -89,419 +71,220 @@ class StudentMentorActivity : AppCompatActivity() {
     }
 
     private fun setupClicks() {
-        findViewById<View>(
-            R.id.btnFindMentor
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    FindMentorActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.btnFindMentor).setOnClickListener {
+            startActivity(Intent(this, FindMentorActivity::class.java))
         }
     }
 
     private fun setupNotification() {
         NotificationBadgeHelper.setup(
-            this,
-            sessionManager,
-            R.id.notificationContainer,
-            R.id.tvNotificationBadge
+            this, sessionManager, R.id.notificationContainer, R.id.tvNotificationBadge
         )
     }
 
-    private fun renderMentorings(
-        mentorings: List<StudentMentoringItem>
-    ) {
-        val container =
-            findViewById<LinearLayout>(
-                R.id.mentorChatContainer
-            )
+    private fun renderMentorings(mentorings: List<StudentMentoringItem>) {
+        val container = findViewById<LinearLayout>(R.id.mentorChatContainer)
 
         container.removeAllViews()
 
         if (mentorings.isEmpty()) {
-            val empty =
-                TextView(this)
+            val empty = TextView(this)
 
-            empty.text =
-                "You don't have a mentor yet."
+            empty.text = "You don't have a mentor yet."
 
-            empty.gravity =
-                Gravity.CENTER
+            empty.gravity = Gravity.CENTER
 
-            empty.setTextColor(
-                Color.parseColor(
-                    "#94A3B8"
-                )
-            )
+            empty.setTextColor(Color.parseColor("#94A3B8"))
 
-            empty.setPadding(
-                0,
-                dp(40),
-                0,
-                dp(40)
-            )
+            empty.setPadding(0, dp(40), 0, dp(40))
 
-            container.addView(
-                empty
-            )
+            container.addView(empty)
 
             return
         }
 
         mentorings.forEach { mentoring ->
-            container.addView(
-                createMentorCard(
-                    mentoring
-                )
-            )
+            container.addView(createMentorCard(mentoring))
         }
     }
 
-    private fun createMentorCard(
-        mentoring: StudentMentoringItem
-    ): View {
-        val card =
-            LinearLayout(this)
+    private fun createMentorCard(mentoring: StudentMentoringItem): View {
+        val card = LinearLayout(this)
 
-        card.orientation =
-            LinearLayout.HORIZONTAL
+        card.orientation = LinearLayout.HORIZONTAL
 
-        card.gravity =
-            Gravity.CENTER_VERTICAL
+        card.gravity = Gravity.CENTER_VERTICAL
 
-        card.setPadding(
-            dp(12),
-            dp(12),
-            dp(12),
-            dp(12)
+        card.setPadding(dp(12), dp(12), dp(12), dp(12))
+
+        card.setBackgroundResource(R.drawable.bg_certificate_card)
+
+        val cardParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         )
 
-        card.setBackgroundResource(
-            R.drawable.bg_certificate_card
+        cardParams.bottomMargin = dp(8)
+
+        card.layoutParams = cardParams
+
+        val avatarContainer = FrameLayout(this)
+
+        val avatarParams = LinearLayout.LayoutParams(dp(42), dp(42))
+
+        avatarParams.marginEnd = dp(12)
+
+        avatarContainer.layoutParams = avatarParams
+
+        val avatarImage = ImageView(this)
+
+        avatarImage.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT
         )
 
-        val cardParams =
-            LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
+        avatarImage.scaleType = ImageView.ScaleType.CENTER_CROP
 
-        cardParams.bottomMargin =
-            dp(8)
+        avatarImage.setBackgroundResource(R.drawable.bg_avatar_circle)
 
-        card.layoutParams =
-            cardParams
+        avatarImage.clipToOutline = true
 
-        val avatarContainer =
-            FrameLayout(this)
+        val avatarInitial = TextView(this)
 
-        val avatarParams =
-            LinearLayout.LayoutParams(
-                dp(42),
-                dp(42)
-            )
-
-        avatarParams.marginEnd =
-            dp(12)
-
-        avatarContainer.layoutParams =
-            avatarParams
-
-        val avatarImage =
-            ImageView(this)
-
-        avatarImage.layoutParams =
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-
-        avatarImage.scaleType =
-            ImageView.ScaleType.CENTER_CROP
-
-        avatarImage.setBackgroundResource(
-            R.drawable.bg_avatar_circle
+        avatarInitial.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT
         )
 
-        avatarImage.clipToOutline =
-            true
+        avatarInitial.gravity = Gravity.CENTER
 
-        val avatarInitial =
-            TextView(this)
+        avatarInitial.setBackgroundResource(R.drawable.bg_avatar_circle)
 
-        avatarInitial.layoutParams =
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
+        avatarInitial.setTextColor(Color.parseColor("#2F6FED"))
 
-        avatarInitial.gravity =
-            Gravity.CENTER
+        avatarInitial.textSize = 14f
 
-        avatarInitial.setBackgroundResource(
-            R.drawable.bg_avatar_circle
-        )
+        avatarInitial.setTypeface(null, Typeface.BOLD)
 
-        avatarInitial.setTextColor(
-            Color.parseColor(
-                "#2F6FED"
-            )
-        )
+        avatarContainer.addView(avatarImage)
 
-        avatarInitial.textSize =
-            14f
-
-        avatarInitial.setTypeface(
-            null,
-            Typeface.BOLD
-        )
-
-        avatarContainer.addView(
-            avatarImage
-        )
-
-        avatarContainer.addView(
-            avatarInitial
-        )
+        avatarContainer.addView(avatarInitial)
 
         AvatarHelper.show(
-            imageView =
-                avatarImage,
-            initialView =
-                avatarInitial,
-            imagePath =
-                mentoring.mentor_profile_image,
-            name =
-                mentoring.mentor_name
+            imageView = avatarImage,
+            initialView = avatarInitial,
+            imagePath = mentoring.mentor_profile_image,
+            name = mentoring.mentor_name
         )
 
-        val content =
-            LinearLayout(this)
+        val content = LinearLayout(this)
 
-        content.orientation =
-            LinearLayout.VERTICAL
+        content.orientation = LinearLayout.VERTICAL
 
         content.layoutParams =
-            LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                1f
-            )
+            LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
 
-        val name =
-            TextView(this)
+        val name = TextView(this)
 
-        name.text =
-            mentoring.mentor_name
-                ?: "Mentor"
+        name.text = mentoring.mentor_name ?: "Mentor"
 
-        name.textSize =
-            14f
+        name.textSize = 14f
 
-        name.setTypeface(
-            null,
-            Typeface.BOLD
-        )
+        name.setTypeface(null, Typeface.BOLD)
 
-        name.setTextColor(
-            Color.parseColor(
-                "#0F172A"
-            )
-        )
+        name.setTextColor(Color.parseColor("#0F172A"))
 
-        val course =
-            TextView(this)
+        val course = TextView(this)
 
-        course.text =
-            if (
-                mentoring.include_final_project == 1
-            ) {
-                "${mentoring.course_name} · Session ${mentoring.start_session} to Final project"
-            } else {
-                "${mentoring.course_name} · Sessions ${mentoring.start_session}-${mentoring.end_session}"
-            }
+        course.text = if (mentoring.include_final_project == 1) {
+            "${mentoring.course_name} · Session ${mentoring.start_session} to Final project"
+        } else {
+            "${mentoring.course_name} · Sessions ${mentoring.start_session}-${mentoring.end_session}"
+        }
 
-        course.textSize =
-            11f
+        course.textSize = 11f
 
-        course.setTextColor(
-            Color.parseColor(
-                "#64748B"
-            )
-        )
+        course.setTextColor(Color.parseColor("#64748B"))
 
-        val status =
-            TextView(this)
+        val status = TextView(this)
 
-        status.text =
-            when (
-                mentoring.status
-            ) {
-                "active" ->
-                    "Mentoring active"
+        status.text = when (mentoring.status) {
+            "active" -> "Mentoring active"
 
-                "completed" ->
-                    "Mentoring completed"
+            "completed" -> "Mentoring completed"
 
-                "expired" ->
-                    "Mentoring ended"
+            "expired" -> "Mentoring ended"
 
-                else ->
-                    mentoring.status
-            }
+            else -> mentoring.status
+        }
 
-        status.textSize =
-            11f
+        status.textSize = 11f
 
         status.setTextColor(
-            if (
-                mentoring.status == "active"
-            ) {
-                Color.parseColor(
-                    "#64748B"
-                )
+            if (mentoring.status == "active") {
+                Color.parseColor("#64748B")
             } else {
-                Color.parseColor(
-                    "#94A3B8"
-                )
+                Color.parseColor("#94A3B8")
             }
         )
 
-        content.addView(
-            name
-        )
+        content.addView(name)
 
-        content.addView(
-            course
-        )
+        content.addView(course)
 
-        content.addView(
-            status
-        )
+        content.addView(status)
 
-        card.addView(
-            avatarContainer
-        )
+        card.addView(avatarContainer)
 
-        card.addView(
-            content
-        )
+        card.addView(content)
 
         card.setOnClickListener {
-            val intent =
-                Intent(
-                    this,
-                    StudentChatActivity::class.java
-                )
+            val intent = Intent(this, StudentChatActivity::class.java)
 
-            intent.putExtra(
-                "MENTORING_ID",
-                mentoring.mentoring_id
-            )
+            intent.putExtra("MENTORING_ID", mentoring.mentoring_id)
 
-            intent.putExtra(
-                "COURSE_ID",
-                mentoring.course_id
-            )
+            intent.putExtra("COURSE_ID", mentoring.course_id)
 
-            intent.putExtra(
-                "PARTNER_NAME",
-                mentoring.mentor_name
-            )
+            intent.putExtra("PARTNER_NAME", mentoring.mentor_name)
 
-            intent.putExtra(
-                "PROFILE_IMAGE",
-                mentoring.mentor_profile_image
-            )
+            intent.putExtra("PROFILE_IMAGE", mentoring.mentor_profile_image)
 
-            intent.putExtra(
-                "COURSE_NAME",
-                mentoring.course_name
-            )
+            intent.putExtra("COURSE_NAME", mentoring.course_name)
 
-            intent.putExtra(
-                "START_SESSION",
-                mentoring.start_session
-            )
+            intent.putExtra("START_SESSION", mentoring.start_session)
 
-            intent.putExtra(
-                "END_SESSION",
-                mentoring.end_session
-            )
+            intent.putExtra("END_SESSION", mentoring.end_session)
 
-            intent.putExtra(
-                "INCLUDE_FINAL_PROJECT",
-                mentoring.include_final_project
-            )
+            intent.putExtra("INCLUDE_FINAL_PROJECT", mentoring.include_final_project)
 
-            startActivity(
-                intent
-            )
+            startActivity(intent)
         }
 
         return card
     }
 
     private fun setupNavigation() {
-        findViewById<View>(
-            R.id.navCourse
-        ).setOnClickListener {
-            val intent =
-                Intent(
-                    this,
-                    StudentHomeActivity::class.java
-                )
+        findViewById<View>(R.id.navCourse).setOnClickListener {
+            val intent = Intent(this, StudentHomeActivity::class.java)
 
-            intent.flags =
-                Intent.FLAG_ACTIVITY_CLEAR_TOP
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
 
-            startActivity(
-                intent
-            )
+            startActivity(intent)
 
             finish()
         }
 
-        findViewById<View>(
-            R.id.navMentor
-        ).setOnClickListener {
-        }
+        findViewById<View>(R.id.navMentor).setOnClickListener {}
 
-        findViewById<View>(
-            R.id.navCalendar
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    StudentCalendarActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navCalendar).setOnClickListener {
+            startActivity(Intent(this, StudentCalendarActivity::class.java))
 
             finish()
         }
 
-        findViewById<View>(
-            R.id.navProfile
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    StudentProfileActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navProfile).setOnClickListener {
+            startActivity(Intent(this, StudentProfileActivity::class.java))
         }
     }
 
-    private fun dp(
-        value: Int
-    ): Int {
-        return (
-                value *
-                        resources
-                            .displayMetrics
-                            .density
-                ).toInt()
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
     }
 }

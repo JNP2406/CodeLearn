@@ -11,33 +11,19 @@ class AuthRepository {
     private val apiService = ApiClient.apiService
 
     suspend fun register(
-        email: String,
-        password: String,
-        role: String,
-        name: String,
-        campus: String
+        email: String, password: String, role: String, name: String, campus: String
     ): Response<AuthResponse> {
 
         val request = RegisterRequest(
-            email = email,
-            password = password,
-            role = role,
-            name = name,
-            campus = campus
+            email = email, password = password, role = role, name = name, campus = campus
         )
 
         return apiService.register(request)
     }
 
-    suspend fun login(
-        email: String,
-        password: String
-    ): Response<AuthResponse> {
+    suspend fun login(email: String, password: String): Response<AuthResponse> {
 
-        val request = LoginRequest(
-            email = email,
-            password = password
-        )
+        val request = LoginRequest(email = email, password = password)
 
         return apiService.login(request)
     }

@@ -37,67 +37,34 @@ class SignUpActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_sign_up
-        )
+        setContentView(R.layout.activity_sign_up)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
-        btnBack =
-            findViewById(
-                R.id.btnBack
-            )
+        btnBack = findViewById(R.id.btnBack)
 
-        etName =
-            findViewById(
-                R.id.etName
-            )
+        etName = findViewById(R.id.etName)
 
-        etCampus =
-            findViewById(
-                R.id.etCampus
-            )
+        etCampus = findViewById(R.id.etCampus)
 
-        etEmail =
-            findViewById(
-                R.id.etEmail
-            )
+        etEmail = findViewById(R.id.etEmail)
 
-        etPassword =
-            findViewById(
-                R.id.etPassword
-            )
+        etPassword = findViewById(R.id.etPassword)
 
-        tvSelectedRole =
-            findViewById(
-                R.id.tvSelectedRole
-            )
+        tvSelectedRole = findViewById(R.id.tvSelectedRole)
 
-        tvSignIn =
-            findViewById(
-                R.id.tvSignIn
-            )
+        tvSignIn = findViewById(R.id.tvSignIn)
 
-        btnSignUp =
-            findViewById(
-                R.id.btnSignUp
-            )
+        btnSignUp = findViewById(R.id.btnSignUp)
 
-        selectedRole =
-            intent.getStringExtra(
-                "ROLE"
-            ) ?: "student"
+        selectedRole = intent.getStringExtra("ROLE") ?: "student"
 
-        tvSelectedRole.text =
-            if (
-                selectedRole == "mentor"
-            ) {
-                "Continue as Mentor"
-            } else {
-                "Continue as Student"
-            }
+        tvSelectedRole.text = if (selectedRole == "mentor") {
+            "Continue as Mentor"
+        } else {
+            "Continue as Student"
+        }
 
         setupListeners()
         setupObservers()
@@ -110,49 +77,34 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         btnSignUp.setOnClickListener {
-            val name =
-                etName.text
-                    .toString()
-                    .trim()
+            val name = etName.text.toString().trim()
 
-            val campus =
-                etCampus.text
-                    .toString()
-                    .trim()
+            val campus = etCampus.text.toString().trim()
 
-            val email =
-                etEmail.text
-                    .toString()
-                    .trim()
+            val email = etEmail.text.toString().trim()
 
-            val password =
-                etPassword.text
-                    .toString()
+            val password = etPassword.text.toString()
 
             if (name.isEmpty()) {
-                etName.error =
-                    "Name is required"
+                etName.error = "Name is required"
 
                 return@setOnClickListener
             }
 
             if (campus.isEmpty()) {
-                etCampus.error =
-                    "Campus is required"
+                etCampus.error = "Campus is required"
 
                 return@setOnClickListener
             }
 
             if (email.isEmpty()) {
-                etEmail.error =
-                    "Email is required"
+                etEmail.error = "Email is required"
 
                 return@setOnClickListener
             }
 
             if (password.length < 8) {
-                etPassword.error =
-                    "Password minimum 8 characters"
+                etPassword.error = "Password minimum 8 characters"
 
                 return@setOnClickListener
             }
@@ -167,11 +119,7 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         tvSignIn.setOnClickListener {
-            val intent =
-                Intent(
-                    this,
-                    SignInActivity::class.java
-                )
+            val intent = Intent(this, SignInActivity::class.java)
 
             startActivity(intent)
         }
@@ -180,36 +128,25 @@ class SignUpActivity : AppCompatActivity() {
     private fun setupObservers() {
 
         viewModel.isLoading.observe(this) { isLoading ->
-            btnSignUp.isEnabled =
-                !isLoading
+            btnSignUp.isEnabled = !isLoading
 
-            btnSignUp.text =
-                if (isLoading) {
-                    "Creating account..."
-                } else {
-                    "Sign up"
-                }
+            btnSignUp.text = if (isLoading) {
+                "Creating account..."
+            } else {
+                "Sign up"
+            }
         }
 
         viewModel.authResult.observe(this) { result ->
 
             result.onSuccess { response ->
 
-                val token =
-                    response.token
+                val token = response.token
 
-                val user =
-                    response.user
+                val user = response.user
 
-                if (
-                    token == null ||
-                    user == null
-                ) {
-                    Toast.makeText(
-                        this,
-                        "Invalid registration response",
-                        Toast.LENGTH_LONG
-                    ).show()
+                if (token == null || user == null) {
+                    Toast.makeText(this, "Invalid registration response", Toast.LENGTH_LONG).show()
 
                     return@onSuccess
                 }
@@ -224,15 +161,9 @@ class SignUpActivity : AppCompatActivity() {
                     isDemo = user.is_demo
                 )
 
-                Toast.makeText(
-                    this,
-                    "Welcome ${user.name}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
 
-                when (
-                    user.role.lowercase()
-                ) {
+                when (user.role.lowercase()) {
                     "student" -> {
                         openStudentHome()
                     }
@@ -244,51 +175,30 @@ class SignUpActivity : AppCompatActivity() {
                     else -> {
                         sessionManager.logout()
 
-                        Toast.makeText(
-                            this,
-                            "Unknown user role",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        Toast.makeText(this, "Unknown user role", Toast.LENGTH_LONG).show()
                     }
                 }
             }
 
             result.onFailure { error ->
-                Toast.makeText(
-                    this,
-                    error.message
-                        ?: "Register failed",
-                    Toast.LENGTH_LONG
-                ).show()
+                Toast.makeText(this, error.message ?: "Register failed", Toast.LENGTH_LONG).show()
             }
         }
     }
 
     private fun openStudentHome() {
-        val intent =
-            Intent(
-                this,
-                StudentHomeActivity::class.java
-            )
+        val intent = Intent(this, StudentHomeActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
         startActivity(intent)
         finish()
     }
 
     private fun openMentorHome() {
-        val intent =
-            Intent(
-                this,
-                MentorChatsActivity::class.java
-            )
+        val intent = Intent(this, MentorChatsActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
         startActivity(intent)
         finish()

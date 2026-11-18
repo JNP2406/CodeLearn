@@ -10,75 +10,44 @@ import kotlinx.coroutines.launch
 
 class NotificationViewModel : ViewModel() {
 
-    private val repository =
-        NotificationRepository()
+    private val repository = NotificationRepository()
 
-    private val _notifications =
-        MutableLiveData<List<NotificationItem>>()
+    private val _notifications = MutableLiveData<List<NotificationItem>>()
 
-    val notifications:
-            LiveData<List<NotificationItem>> =
-        _notifications
+    val notifications: LiveData<List<NotificationItem>> = _notifications
 
-    private val _unreadCount =
-        MutableLiveData<Int>()
+    private val _unreadCount = MutableLiveData<Int>()
 
-    val unreadCount:
-            LiveData<Int> =
-        _unreadCount
+    val unreadCount: LiveData<Int> = _unreadCount
 
-    private val _message =
-        MutableLiveData<String?>()
+    private val _message = MutableLiveData<String?>()
 
-    val message:
-            LiveData<String?> =
-        _message
+    val message: LiveData<String?> = _message
 
-    fun loadNotifications(
-        token: String
-    ) {
+    fun loadNotifications(token: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.getNotifications(
-                        token
-                    )
+                val response = repository.getNotifications(token)
 
                 if (response.isSuccessful) {
-                    _notifications.value =
-                        response.body()
-                            ?.notifications
-                            ?: emptyList()
+                    _notifications.value = response.body()?.notifications ?: emptyList()
                 } else {
-                    _message.value =
-                        "Failed to load notifications"
+                    _message.value = "Failed to load notifications"
                 }
 
-            } catch (
-                e: Exception
-            ) {
-                _message.value =
-                    e.message
-                        ?: "Failed to load notifications"
+            } catch (e: Exception) {
+                _message.value = e.message ?: "Failed to load notifications"
             }
         }
     }
 
-    fun loadUnreadCount(
-        token: String
-    ) {
+    fun loadUnreadCount(token: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.getUnreadCount(
-                        token
-                    )
+                val response = repository.getUnreadCount(token)
 
                 if (response.isSuccessful) {
-                    _unreadCount.value =
-                        response.body()
-                            ?.unread_count
-                            ?: 0
+                    _unreadCount.value = response.body()?.unread_count ?: 0
                 }
 
             } catch (_: Exception) {
@@ -86,19 +55,13 @@ class NotificationViewModel : ViewModel() {
         }
     }
 
-    fun markAllRead(
-        token: String
-    ) {
+    fun markAllRead(token: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.markAllRead(
-                        token
-                    )
+                val response = repository.markAllRead(token)
 
                 if (response.isSuccessful) {
-                    _unreadCount.value =
-                        0
+                    _unreadCount.value = 0
                 }
 
             } catch (_: Exception) {
@@ -107,7 +70,6 @@ class NotificationViewModel : ViewModel() {
     }
 
     fun clearMessage() {
-        _message.value =
-            null
+        _message.value = null
     }
 }

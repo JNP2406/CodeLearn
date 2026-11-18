@@ -6,15 +6,10 @@ import retrofit2.Response
 
 class MaterialRepository {
 
-    private val apiService =
-        ApiClient.apiService
+    private val apiService = ApiClient.apiService
 
-    suspend fun getSessionMaterials(
-        sessionId: Int
-    ): Response<MaterialListResponse> {
+    suspend fun getSessionMaterials(sessionId: Int): Response<MaterialListResponse> {
 
-        return apiService.getSessionMaterials(
-            sessionId
-        )
+        return apiService.getSessionMaterials(sessionId)
     }
 }

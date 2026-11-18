@@ -4,10 +4,8 @@ import android.content.Context
 
 class SessionManager(context: Context) {
 
-    private val preferences = context.getSharedPreferences(
-        "codelearn_session",
-        Context.MODE_PRIVATE
-    )
+    private val preferences =
+        context.getSharedPreferences("codelearn_session", Context.MODE_PRIVATE)
 
     companion object {
         private const val KEY_TOKEN = "token"
@@ -74,8 +72,6 @@ class SessionManager(context: Context) {
     }
 
     fun logout() {
-        preferences.edit()
-            .clear()
-            .apply()
+        preferences.edit().clear().apply()
     }
 }

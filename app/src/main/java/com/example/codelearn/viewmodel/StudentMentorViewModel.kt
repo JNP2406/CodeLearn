@@ -10,47 +10,28 @@ import kotlinx.coroutines.launch
 
 class StudentMentorViewModel : ViewModel() {
 
-    private val repository =
-        MentoringRepository()
+    private val repository = MentoringRepository()
 
-    private val _mentorings =
-        MutableLiveData<List<StudentMentoringItem>>(
-            emptyList()
-        )
+    private val _mentorings = MutableLiveData<List<StudentMentoringItem>>(emptyList())
 
-    val mentorings:
-            LiveData<List<StudentMentoringItem>> =
-        _mentorings
+    val mentorings: LiveData<List<StudentMentoringItem>> = _mentorings
 
-    private val _message =
-        MutableLiveData<String?>()
+    private val _message = MutableLiveData<String?>()
 
-    val message:
-            LiveData<String?> =
-        _message
+    val message: LiveData<String?> = _message
 
-    fun loadMentorings(
-        token: String
-    ) {
+    fun loadMentorings(token: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.getStudentMentorings(
-                        token
-                    )
+                val response = repository.getStudentMentorings(token)
 
                 if (response.isSuccessful) {
-                    _mentorings.value =
-                        response.body()?.mentorings
-                            ?: emptyList()
+                    _mentorings.value = response.body()?.mentorings ?: emptyList()
                 } else {
-                    _message.value =
-                        "Failed to load mentorings"
+                    _message.value = "Failed to load mentorings"
                 }
             } catch (e: Exception) {
-                _message.value =
-                    e.message
-                        ?: "Failed to load mentorings"
+                _message.value = e.message ?: "Failed to load mentorings"
             }
         }
     }

@@ -1,8 +1,6 @@
 package com.example.codelearn.model
 
-data class NotificationListResponse(
-    val notifications: List<NotificationItem>
-)
+data class NotificationListResponse(val notifications: List<NotificationItem>)
 
 data class NotificationItem(
     val id: Int,
@@ -14,10 +12,6 @@ data class NotificationItem(
     val created_at: String?
 )
 
-data class NotificationUnreadCountResponse(
-    val unread_count: Int
-)
+data class NotificationUnreadCountResponse(val unread_count: Int)
 
-data class NotificationActionResponse(
-    val message: String
-)
+data class NotificationActionResponse(val message: String)

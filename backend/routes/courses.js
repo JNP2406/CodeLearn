@@ -12,8 +12,8 @@ const router = express.Router();
 | Mengambil semua course.
 */
 router.get("/", async (req, res) => {
-    try {
-        const [courses] = await db.query(`
+  try {
+    const [courses] = await db.query(`
             SELECT
                 id,
                 name,
@@ -30,20 +30,18 @@ router.get("/", async (req, res) => {
                 id ASC
         `);
 
-        res.status(200).json({
-            message: "Courses retrieved successfully",
-            courses: courses
-        });
+    res.status(200).json({
+      message: "Courses retrieved successfully",
+      courses: courses,
+    });
+  } catch (error) {
+    console.error("GET COURSES ERROR:", error);
 
-    } catch (error) {
-        console.error("GET COURSES ERROR:", error);
-
-        res.status(500).json({
-            message: "Failed to retrieve courses"
-        });
-    }
+    res.status(500).json({
+      message: "Failed to retrieve courses",
+    });
+  }
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -54,11 +52,11 @@ router.get("/", async (req, res) => {
 | Mengambil satu course beserta seluruh session-nya.
 */
 router.get("/:id", async (req, res) => {
-    try {
-        const courseId = req.params.id;
+  try {
+    const courseId = req.params.id;
 
-        const [courses] = await db.query(
-            `
+    const [courses] = await db.query(
+      `
             SELECT
                 id,
                 name,
@@ -69,19 +67,19 @@ router.get("/:id", async (req, res) => {
             FROM courses
             WHERE id = ?
             `,
-            [courseId]
-        );
+      [courseId],
+    );
 
-        if (courses.length === 0) {
-            return res.status(404).json({
-                message: "Course not found"
-            });
-        }
+    if (courses.length === 0) {
+      return res.status(404).json({
+        message: "Course not found",
+      });
+    }
 
-        const course = courses[0];
+    const course = courses[0];
 
-        const [sessions] = await db.query(
-            `
+    const [sessions] = await db.query(
+      `
             SELECT
                 id,
                 course_id,
@@ -92,24 +90,23 @@ router.get("/:id", async (req, res) => {
             WHERE course_id = ?
             ORDER BY session_number ASC
             `,
-            [courseId]
-        );
+      [courseId],
+    );
 
-        res.status(200).json({
-            message: "Course retrieved successfully",
-            course: {
-                ...course,
-                sessions: sessions
-            }
-        });
+    res.status(200).json({
+      message: "Course retrieved successfully",
+      course: {
+        ...course,
+        sessions: sessions,
+      },
+    });
+  } catch (error) {
+    console.error("GET COURSE DETAIL ERROR:", error);
 
-    } catch (error) {
-        console.error("GET COURSE DETAIL ERROR:", error);
-
-        res.status(500).json({
-            message: "Failed to retrieve course"
-        });
-    }
+    res.status(500).json({
+      message: "Failed to retrieve course",
+    });
+  }
 });
 
 module.exports = router;

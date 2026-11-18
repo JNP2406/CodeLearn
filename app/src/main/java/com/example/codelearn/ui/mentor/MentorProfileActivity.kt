@@ -32,51 +32,35 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 class MentorProfileActivity : AppCompatActivity() {
 
-    private val viewModel:
-            ProfileViewModel by viewModels()
+    private val viewModel: ProfileViewModel by viewModels()
 
-    private lateinit var sessionManager:
-            SessionManager
+    private lateinit var sessionManager: SessionManager
 
-    private var currentProfile:
-            ProfileUser? = null
+    private var currentProfile: ProfileUser? = null
 
-    private var currentSpecializations:
-            List<ProfileSpecialization> = emptyList()
+    private var currentSpecializations: List<ProfileSpecialization> = emptyList()
 
-    private var pendingUploadType:
-            String? = null
+    private var pendingUploadType: String? = null
 
     private val token: String
-        get() =
-            sessionManager.getToken() ?: ""
+        get() = sessionManager.getToken() ?: ""
 
     private val imagePicker =
-        registerForActivityResult(
-            ActivityResultContracts.GetContent()
-        ) { uri ->
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
                 uploadImage(uri)
             }
         }
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_mentor_profile
-        )
+        setContentView(R.layout.activity_mentor_profile)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
-        if (
-            !sessionManager.isLoggedIn() ||
-            token.isEmpty()
-        ) {
+        if (!sessionManager.isLoggedIn() || token.isEmpty()) {
             openSignIn()
             return
         }
@@ -91,40 +75,27 @@ class MentorProfileActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        if (
-            ::sessionManager.isInitialized &&
-            token.isNotEmpty()
-        ) {
+        if (::sessionManager.isInitialized && token.isNotEmpty()) {
             viewModel.loadProfile(token)
         }
     }
 
     private fun setupObservers() {
         viewModel.profile.observe(this) {
-            currentProfile =
-                it
+            currentProfile = it
 
-            renderProfile(
-                it
-            )
+            renderProfile(it)
         }
 
         viewModel.specializations.observe(this) {
-            currentSpecializations =
-                it
+            currentSpecializations = it
 
-            renderSpecializations(
-                it
-            )
+            renderSpecializations(it)
         }
 
         viewModel.message.observe(this) {
             if (!it.isNullOrBlank()) {
-                Toast.makeText(
-                    this,
-                    it,
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
 
                 viewModel.clearMessage()
             }
@@ -132,335 +103,172 @@ class MentorProfileActivity : AppCompatActivity() {
     }
 
     private fun setupClicks() {
-        findViewById<View>(
-            R.id.btnEditProfile
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnEditProfile).setOnClickListener {
             showEditDialog()
         }
 
-        findViewById<View>(
-            R.id.btnAddCertificate
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnAddCertificate).setOnClickListener {
             Toast.makeText(
-                this,
-                "Mentor certificate backend will be connected later",
-                Toast.LENGTH_SHORT
+                this, "Mentor certificate backend will be connected later", Toast.LENGTH_SHORT
             ).show()
         }
 
-        findViewById<View>(
-            R.id.btnSignOut
-        ).setOnClickListener {
+        findViewById<View>(R.id.btnSignOut).setOnClickListener {
             sessionManager.logout()
             openSignIn()
         }
     }
 
     private fun setupNavigation() {
-        findViewById<View>(
-            R.id.navChats
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    MentorChatsActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navChats).setOnClickListener {
+            startActivity(Intent(this, MentorChatsActivity::class.java))
 
             finish()
         }
 
-        findViewById<View>(
-            R.id.navCalendar
-        ).setOnClickListener {
-            startActivity(
-                Intent(
-                    this,
-                    MentorCalendarActivity::class.java
-                )
-            )
+        findViewById<View>(R.id.navCalendar).setOnClickListener {
+            startActivity(Intent(this, MentorCalendarActivity::class.java))
 
             finish()
         }
     }
 
-    private fun renderProfile(
-        profile: ProfileUser
-    ) {
-        findViewById<TextView>(
-            R.id.tvName
-        ).text =
-            profile.name ?: "Mentor"
+    private fun renderProfile(profile: ProfileUser) {
+        findViewById<TextView>(R.id.tvName).text = profile.name ?: "Mentor"
 
-        findViewById<TextView>(
-            R.id.tvCampus
-        ).text =
-            profile.campus ?: "No campus"
+        findViewById<TextView>(R.id.tvCampus).text = profile.campus ?: "No campus"
 
         AvatarHelper.show(
-            imageView =
-                findViewById<ImageView>(
-                    R.id.ivProfile
-                ),
-            initialView =
-                findViewById<TextView>(
-                    R.id.tvProfileInitial
-                ),
-            imagePath =
-                profile.profile_image,
-            name =
-                profile.name ?: "Mentor"
+            imageView = findViewById<ImageView>(R.id.ivProfile),
+            initialView = findViewById<TextView>(R.id.tvProfileInitial),
+            imagePath = profile.profile_image,
+            name = profile.name ?: "Mentor"
         )
 
-        val coverImage =
-            findViewById<ImageView>(
-                R.id.ivCover
-            )
+        val coverImage = findViewById<ImageView>(R.id.ivCover)
 
         if (!profile.cover_image.isNullOrBlank()) {
-            coverImage.load(
-                buildUrl(
-                    profile.cover_image
-                )
-            ) {
+            coverImage.load(buildUrl(profile.cover_image)) {
                 crossfade(true)
             }
         } else {
             coverImage.setImageDrawable(null)
-            coverImage.setBackgroundColor(
-                android.graphics.Color.parseColor(
-                    "#5A43E8"
-                )
-            )
+            coverImage.setBackgroundColor(android.graphics.Color.parseColor("#5A43E8"))
         }
     }
 
-    private fun renderSpecializations(
-        specializations:
-        List<ProfileSpecialization>
-    ) {
-        val container =
-            findViewById<LinearLayout>(
-                R.id.specializationContainer
-            )
+    private fun renderSpecializations(specializations: List<ProfileSpecialization>) {
+        val container = findViewById<LinearLayout>(R.id.specializationContainer)
 
         container.removeAllViews()
 
         if (specializations.isEmpty()) {
-            val empty =
-                TextView(this)
+            val empty = TextView(this)
 
-            empty.text =
-                "No specialization"
+            empty.text = "No specialization"
 
-            empty.setTextColor(
-                android.graphics.Color.GRAY
-            )
+            empty.setTextColor(android.graphics.Color.GRAY)
 
-            container.addView(
-                empty
-            )
+            container.addView(empty)
 
             return
         }
 
         specializations.forEach {
-            val tag =
-                TextView(this)
+            val tag = TextView(this)
 
-            tag.text =
-                it.course_name
+            tag.text = it.course_name
 
-            tag.setTextColor(
-                android.graphics.Color.parseColor(
-                    "#2F6FED"
-                )
+            tag.setTextColor(android.graphics.Color.parseColor("#2F6FED"))
+
+            tag.setBackgroundResource(R.drawable.bg_role_badge)
+
+            tag.setPadding(dp(10), dp(5), dp(10), dp(5))
+
+            val params = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
             )
 
-            tag.setBackgroundResource(
-                R.drawable.bg_role_badge
-            )
+            params.marginEnd = dp(8)
 
-            tag.setPadding(
-                dp(10),
-                dp(5),
-                dp(10),
-                dp(5)
-            )
+            tag.layoutParams = params
 
-            val params =
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-
-            params.marginEnd =
-                dp(8)
-
-            tag.layoutParams =
-                params
-
-            container.addView(
-                tag
-            )
+            container.addView(tag)
         }
     }
 
     private fun showEditDialog() {
-        val dialog =
-            Dialog(this)
+        val dialog = Dialog(this)
 
-        dialog.requestWindowFeature(
-            Window.FEATURE_NO_TITLE
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+
+        val view = LayoutInflater.from(this).inflate(R.layout.dialog_edit_mentor_profile, null)
+
+        dialog.setContentView(view)
+
+        val etName = view.findViewById<EditText>(R.id.etName)
+
+        val etCampus = view.findViewById<EditText>(R.id.etCampus)
+
+        etName.setText(currentProfile?.name ?: sessionManager.getName() ?: "")
+
+        etCampus.setText(currentProfile?.campus ?: sessionManager.getCampus() ?: "")
+
+        val checkboxes = mapOf(
+            1 to view.findViewById<CheckBox>(R.id.checkPython),
+            2 to view.findViewById<CheckBox>(R.id.checkC),
+            3 to view.findViewById<CheckBox>(R.id.checkJava),
+            4 to view.findViewById<CheckBox>(R.id.checkJavaScript),
+            5 to view.findViewById<CheckBox>(R.id.checkDataStructures),
+            6 to view.findViewById<CheckBox>(R.id.checkOop),
+            7 to view.findViewById<CheckBox>(R.id.checkCompBio)
         )
-
-        val view =
-            LayoutInflater
-                .from(this)
-                .inflate(
-                    R.layout.dialog_edit_mentor_profile,
-                    null
-                )
-
-        dialog.setContentView(
-            view
-        )
-
-        val etName =
-            view.findViewById<EditText>(
-                R.id.etName
-            )
-
-        val etCampus =
-            view.findViewById<EditText>(
-                R.id.etCampus
-            )
-
-        etName.setText(
-            currentProfile?.name
-                ?: sessionManager.getName()
-                ?: ""
-        )
-
-        etCampus.setText(
-            currentProfile?.campus
-                ?: sessionManager.getCampus()
-                ?: ""
-        )
-
-        val checkboxes =
-            mapOf(
-                1 to view.findViewById<CheckBox>(
-                    R.id.checkPython
-                ),
-                2 to view.findViewById<CheckBox>(
-                    R.id.checkC
-                ),
-                3 to view.findViewById<CheckBox>(
-                    R.id.checkJava
-                ),
-                4 to view.findViewById<CheckBox>(
-                    R.id.checkJavaScript
-                ),
-                5 to view.findViewById<CheckBox>(
-                    R.id.checkDataStructures
-                ),
-                6 to view.findViewById<CheckBox>(
-                    R.id.checkOop
-                ),
-                7 to view.findViewById<CheckBox>(
-                    R.id.checkCompBio
-                )
-            )
 
         currentSpecializations.forEach {
-            checkboxes[
-                it.course_id
-            ]?.isChecked =
-                true
+            checkboxes[it.course_id]?.isChecked = true
         }
 
-        view.findViewById<View>(
-            R.id.btnChangePhoto
-        ).setOnClickListener {
-            pendingUploadType =
-                "profile"
+        view.findViewById<View>(R.id.btnChangePhoto).setOnClickListener {
+            pendingUploadType = "profile"
 
-            imagePicker.launch(
-                "image/*"
-            )
+            imagePicker.launch("image/*")
         }
 
-        view.findViewById<View>(
-            R.id.btnChangeCover
-        ).setOnClickListener {
-            pendingUploadType =
-                "cover"
+        view.findViewById<View>(R.id.btnChangeCover).setOnClickListener {
+            pendingUploadType = "cover"
 
-            imagePicker.launch(
-                "image/*"
-            )
+            imagePicker.launch("image/*")
         }
 
-        view.findViewById<View>(
-            R.id.btnCancel
-        ).setOnClickListener {
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener {
             dialog.dismiss()
         }
 
-        view.findViewById<View>(
-            R.id.btnSave
-        ).setOnClickListener {
-            val name =
-                etName.text
-                    .toString()
-                    .trim()
+        view.findViewById<View>(R.id.btnSave).setOnClickListener {
+            val name = etName.text.toString().trim()
 
-            val campus =
-                etCampus.text
-                    .toString()
-                    .trim()
+            val campus = etCampus.text.toString().trim()
 
             if (name.isBlank()) {
-                Toast.makeText(
-                    this,
-                    "Name is required",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Name is required", Toast.LENGTH_SHORT).show()
 
                 return@setOnClickListener
             }
 
-            val selectedCourseIds =
-                checkboxes
-                    .filter {
-                        it.value.isChecked
-                    }
-                    .keys
-                    .toList()
+            val selectedCourseIds = checkboxes.filter {
+                it.value.isChecked
+            }.keys.toList()
 
-            viewModel.updateProfile(
-                token,
-                name,
-                campus
-            )
+            viewModel.updateProfile(token, name, campus)
 
-            viewModel.updateSpecializations(
-                token,
-                selectedCourseIds
-            )
+            viewModel.updateSpecializations(token, selectedCourseIds)
 
             dialog.dismiss()
         }
 
         dialog.setOnShowListener {
             dialog.window?.setLayout(
-                (
-                        resources
-                            .displayMetrics
-                            .widthPixels *
-                                0.88
-                        ).toInt(),
+                (resources.displayMetrics.widthPixels * 0.88).toInt(),
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
@@ -468,111 +276,56 @@ class MentorProfileActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun uploadImage(
-        uri: Uri
-    ) {
-        val bytes =
-            contentResolver
-                .openInputStream(uri)
-                ?.use {
-                    it.readBytes()
-                }
-                ?: return
+    private fun uploadImage(uri: Uri) {
+        val bytes = contentResolver.openInputStream(uri)?.use {
+            it.readBytes()
+        } ?: return
 
-        val mimeType =
-            contentResolver.getType(uri)
-                ?: "image/jpeg"
+        val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
 
-        val extension =
-            when (mimeType) {
-                "image/png" ->
-                    "png"
+        val extension = when (mimeType) {
+            "image/png" -> "png"
 
-                "image/webp" ->
-                    "webp"
+            "image/webp" -> "webp"
 
-                else ->
-                    "jpg"
-            }
-
-        val body =
-            bytes.toRequestBody(
-                mimeType.toMediaTypeOrNull()
-            )
-
-        if (
-            pendingUploadType == "profile"
-        ) {
-            val imageView =
-                findViewById<ImageView>(
-                    R.id.ivProfile
-                )
-
-            val initialView =
-                findViewById<TextView>(
-                    R.id.tvProfileInitial
-                )
-
-            imageView.visibility =
-                View.VISIBLE
-
-            initialView.visibility =
-                View.GONE
-
-            imageView.load(
-                uri
-            )
-
-            val part =
-                MultipartBody.Part.createFormData(
-                    "profile_image",
-                    "mentor-profile-${System.currentTimeMillis()}.$extension",
-                    body
-                )
-
-            viewModel.uploadProfileImage(
-                token,
-                part
-            )
+            else -> "jpg"
         }
 
-        if (
-            pendingUploadType == "cover"
-        ) {
-            findViewById<ImageView>(
-                R.id.ivCover
-            ).load(
-                uri
+        val body = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+
+        if (pendingUploadType == "profile") {
+            val imageView = findViewById<ImageView>(R.id.ivProfile)
+
+            val initialView = findViewById<TextView>(R.id.tvProfileInitial)
+
+            imageView.visibility = View.VISIBLE
+
+            initialView.visibility = View.GONE
+
+            imageView.load(uri)
+
+            val part = MultipartBody.Part.createFormData(
+                "profile_image", "mentor-profile-${System.currentTimeMillis()}.$extension", body
             )
 
-            val part =
-                MultipartBody.Part.createFormData(
-                    "cover_image",
-                    "mentor-cover-${System.currentTimeMillis()}.$extension",
-                    body
-                )
-
-            viewModel.uploadCoverImage(
-                token,
-                part
-            )
+            viewModel.uploadProfileImage(token, part)
         }
 
-        pendingUploadType =
-            null
+        if (pendingUploadType == "cover") {
+            findViewById<ImageView>(R.id.ivCover).load(uri)
+
+            val part = MultipartBody.Part.createFormData(
+                "cover_image", "mentor-cover-${System.currentTimeMillis()}.$extension", body
+            )
+
+            viewModel.uploadCoverImage(token, part)
+        }
+
+        pendingUploadType = null
     }
 
-    private fun buildUrl(
-        path: String
-    ): String {
-        if (
-            path.startsWith(
-                "http://"
-            ) ||
-            path.startsWith(
-                "https://"
-            )
-        ) {
+    private fun buildUrl(path: String): String {
+        if (path.startsWith("http://") || path.startsWith("https://")) {
             return path
         }
 
@@ -580,31 +333,16 @@ class MentorProfileActivity : AppCompatActivity() {
     }
 
     private fun openSignIn() {
-        val intent =
-            Intent(
-                this,
-                SignInActivity::class.java
-            )
+        val intent = Intent(this, SignInActivity::class.java)
 
-        intent.flags =
-            Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-        startActivity(
-            intent
-        )
+        startActivity(intent)
 
         finish()
     }
 
-    private fun dp(
-        value: Int
-    ): Int {
-        return (
-                value *
-                        resources
-                            .displayMetrics
-                            .density
-                ).toInt()
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
     }
 }

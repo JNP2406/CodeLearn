@@ -10,55 +10,32 @@ import kotlinx.coroutines.launch
 
 class FindMentorViewModel : ViewModel() {
 
-    private val repository =
-        MentoringRepository()
+    private val repository = MentoringRepository()
 
-    private val _mentors =
-        MutableLiveData<List<MentorListItem>>(
-            emptyList()
-        )
+    private val _mentors = MutableLiveData<List<MentorListItem>>(emptyList())
 
-    val mentors:
-            LiveData<List<MentorListItem>> =
-        _mentors
+    val mentors: LiveData<List<MentorListItem>> = _mentors
 
-    private val _message =
-        MutableLiveData<String?>()
+    private val _message = MutableLiveData<String?>()
 
-    val message:
-            LiveData<String?> =
-        _message
+    val message: LiveData<String?> = _message
 
-    private val _requestSuccess =
-        MutableLiveData(false)
+    private val _requestSuccess = MutableLiveData(false)
 
-    val requestSuccess:
-            LiveData<Boolean> =
-        _requestSuccess
+    val requestSuccess: LiveData<Boolean> = _requestSuccess
 
-    fun loadMentors(
-        token: String
-    ) {
+    fun loadMentors(token: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository
-                        .getAvailableMentors(
-                            token
-                        )
+                val response = repository.getAvailableMentors(token)
 
                 if (response.isSuccessful) {
-                    _mentors.value =
-                        response.body()?.mentors
-                            ?: emptyList()
+                    _mentors.value = response.body()?.mentors ?: emptyList()
                 } else {
-                    _message.value =
-                        "Failed to load mentors"
+                    _message.value = "Failed to load mentors"
                 }
             } catch (e: Exception) {
-                _message.value =
-                    e.message
-                        ?: "Failed to load mentors"
+                _message.value = e.message ?: "Failed to load mentors"
             }
         }
     }
@@ -73,33 +50,19 @@ class FindMentorViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.createRequest(
-                        token,
-                        mentorId,
-                        courseId,
-                        fromSession,
-                        toSession,
-                        includeFinalProject
-                    )
+                val response = repository.createRequest(
+                    token, mentorId, courseId, fromSession, toSession, includeFinalProject
+                )
 
                 if (response.isSuccessful) {
-                    _message.value =
-                        response.body()?.message
-                            ?: "Mentoring request sent"
+                    _message.value = response.body()?.message ?: "Mentoring request sent"
 
-                    _requestSuccess.value =
-                        true
+                    _requestSuccess.value = true
                 } else {
-                    _message.value =
-                        response.errorBody()
-                            ?.string()
-                            ?: "Failed to send request"
+                    _message.value = response.errorBody()?.string() ?: "Failed to send request"
                 }
             } catch (e: Exception) {
-                _message.value =
-                    e.message
-                        ?: "Failed to send request"
+                _message.value = e.message ?: "Failed to send request"
             }
         }
     }

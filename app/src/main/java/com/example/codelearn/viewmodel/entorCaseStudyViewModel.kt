@@ -10,90 +10,52 @@ import kotlinx.coroutines.launch
 
 class MentorCaseStudyViewModel : ViewModel() {
 
-    private val repository =
-        MentorCaseStudyRepository()
+    private val repository = MentorCaseStudyRepository()
 
-    private val _data =
-        MutableLiveData<MentorCaseStudyResponse>()
+    private val _data = MutableLiveData<MentorCaseStudyResponse>()
 
-    val data:
-            LiveData<MentorCaseStudyResponse> =
-        _data
+    val data: LiveData<MentorCaseStudyResponse> = _data
 
-    private val _message =
-        MutableLiveData<String?>()
+    private val _message = MutableLiveData<String?>()
 
-    val message:
-            LiveData<String?> =
-        _message
+    val message: LiveData<String?> = _message
 
-    private val _reviewFinished =
-        MutableLiveData(false)
+    private val _reviewFinished = MutableLiveData(false)
 
-    val reviewFinished:
-            LiveData<Boolean> =
-        _reviewFinished
+    val reviewFinished: LiveData<Boolean> = _reviewFinished
 
-    fun loadCaseStudy(
-        token: String,
-        mentoringId: Int
-    ) {
+    fun loadCaseStudy(token: String, mentoringId: Int) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.getCaseStudy(
-                        token,
-                        mentoringId
-                    )
+                val response = repository.getCaseStudy(token, mentoringId)
 
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _data.value = it
                     }
                 } else {
-                    _message.value =
-                        response.errorBody()
-                            ?.string()
-                            ?: "Failed to load case study"
+                    _message.value = response.errorBody()?.string() ?: "Failed to load case study"
                 }
             } catch (e: Exception) {
-                _message.value =
-                    e.message
-                        ?: "Failed to load case study"
+                _message.value = e.message ?: "Failed to load case study"
             }
         }
     }
 
-    fun submitReview(
-        token: String,
-        reviewId: Int,
-        status: String
-    ) {
+    fun submitReview(token: String, reviewId: Int, status: String) {
         viewModelScope.launch {
             try {
-                val response =
-                    repository.submitReview(
-                        token,
-                        reviewId,
-                        status
-                    )
+                val response = repository.submitReview(token, reviewId, status)
 
                 if (response.isSuccessful) {
-                    _message.value =
-                        response.body()?.message
+                    _message.value = response.body()?.message
 
-                    _reviewFinished.value =
-                        true
+                    _reviewFinished.value = true
                 } else {
-                    _message.value =
-                        response.errorBody()
-                            ?.string()
-                            ?: "Failed to submit review"
+                    _message.value = response.errorBody()?.string() ?: "Failed to submit review"
                 }
             } catch (e: Exception) {
-                _message.value =
-                    e.message
-                        ?: "Failed to submit review"
+                _message.value = e.message ?: "Failed to submit review"
             }
         }
     }

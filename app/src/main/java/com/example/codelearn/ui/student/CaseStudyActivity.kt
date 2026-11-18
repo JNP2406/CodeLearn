@@ -23,61 +23,40 @@ import com.google.android.material.button.MaterialButton
 
 class CaseStudyActivity : AppCompatActivity() {
 
-    private val caseStudyViewModel:
-            CaseStudyViewModel by viewModels()
+    private val caseStudyViewModel: CaseStudyViewModel by viewModels()
 
-    private val certificateViewModel:
-            CertificateViewModel by viewModels()
+    private val certificateViewModel: CertificateViewModel by viewModels()
 
-    private lateinit var sessionManager:
-            SessionManager
+    private lateinit var sessionManager: SessionManager
 
-    private lateinit var btnBackArea:
-            LinearLayout
+    private lateinit var btnBackArea: LinearLayout
 
-    private lateinit var tvCaseStudyTitle:
-            TextView
+    private lateinit var tvCaseStudyTitle: TextView
 
-    private lateinit var tvScenario:
-            TextView
+    private lateinit var tvScenario: TextView
 
-    private lateinit var tvTaskDescription:
-            TextView
+    private lateinit var tvTaskDescription: TextView
 
-    private lateinit var tvApprovalBadge:
-            TextView
+    private lateinit var tvApprovalBadge: TextView
 
-    private lateinit var tvCertificateStatus:
-            TextView
+    private lateinit var tvCertificateStatus: TextView
 
-    private lateinit var btnClaimCertificate:
-            MaterialButton
+    private lateinit var btnClaimCertificate: MaterialButton
 
-    private var courseId =
-        -1
+    private var courseId = -1
 
-    private var canClaimCertificate =
-        false
+    private var canClaimCertificate = false
 
-    override fun onCreate(
-        savedInstanceState: Bundle?
-    ) {
+    override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
-        setContentView(
-            R.layout.activity_case_study
-        )
+        setContentView(R.layout.activity_case_study)
         ActivityConfig.config(window)
 
-        sessionManager =
-            SessionManager(this)
+        sessionManager = SessionManager(this)
 
-        courseId =
-            intent.getIntExtra(
-                "COURSE_ID",
-                -1
-            )
+        courseId = intent.getIntExtra("COURSE_ID", -1)
 
         if (courseId == -1) {
             finish()
@@ -98,40 +77,19 @@ class CaseStudyActivity : AppCompatActivity() {
 
     private fun bindViews() {
 
-        btnBackArea =
-            findViewById(
-                R.id.btnBackArea
-            )
+        btnBackArea = findViewById(R.id.btnBackArea)
 
-        tvCaseStudyTitle =
-            findViewById(
-                R.id.tvCaseStudyTitle
-            )
+        tvCaseStudyTitle = findViewById(R.id.tvCaseStudyTitle)
 
-        tvScenario =
-            findViewById(
-                R.id.tvScenario
-            )
+        tvScenario = findViewById(R.id.tvScenario)
 
-        tvTaskDescription =
-            findViewById(
-                R.id.tvTaskDescription
-            )
+        tvTaskDescription = findViewById(R.id.tvTaskDescription)
 
-        tvApprovalBadge =
-            findViewById(
-                R.id.tvApprovalBadge
-            )
+        tvApprovalBadge = findViewById(R.id.tvApprovalBadge)
 
-        tvCertificateStatus =
-            findViewById(
-                R.id.tvCertificateStatus
-            )
+        tvCertificateStatus = findViewById(R.id.tvCertificateStatus)
 
-        btnClaimCertificate =
-            findViewById(
-                R.id.btnClaimCertificate
-            )
+        btnClaimCertificate = findViewById(R.id.btnClaimCertificate)
     }
 
     private fun setupListeners() {
@@ -152,52 +110,34 @@ class CaseStudyActivity : AppCompatActivity() {
 
     private fun setupObservers() {
 
-        caseStudyViewModel.caseStudy.observe(
-            this
-        ) { result ->
+        caseStudyViewModel.caseStudy.observe(this) { result ->
 
             result.onSuccess { response ->
 
-                showCaseStudy(
-                    response
-                )
+                showCaseStudy(response)
             }
 
             result.onFailure { error ->
 
                 Toast.makeText(
-                    this,
-                    error.message
-                        ?: "Failed to load case study",
-                    Toast.LENGTH_LONG
+                    this, error.message ?: "Failed to load case study", Toast.LENGTH_LONG
                 ).show()
             }
         }
 
-        certificateViewModel.claimResult.observe(
-            this
-        ) { result ->
+        certificateViewModel.claimResult.observe(this) { result ->
 
             result.onSuccess { response ->
 
-                Toast.makeText(
-                    this,
-                    "Certificate claimed successfully",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this, "Certificate claimed successfully", Toast.LENGTH_SHORT).show()
 
-                openCertificate(
-                    response.certificate
-                )
+                openCertificate(response.certificate)
             }
 
             result.onFailure { error ->
 
                 Toast.makeText(
-                    this,
-                    error.message
-                        ?: "Failed to claim certificate",
-                    Toast.LENGTH_LONG
+                    this, error.message ?: "Failed to claim certificate", Toast.LENGTH_LONG
                 ).show()
             }
         }
@@ -205,79 +145,52 @@ class CaseStudyActivity : AppCompatActivity() {
 
     private fun loadCaseStudy() {
 
-        val token =
-            sessionManager.getToken()
+        val token = sessionManager.getToken()
 
         if (token.isNullOrEmpty()) {
             finish()
             return
         }
 
-        caseStudyViewModel.loadCaseStudy(
-            token,
-            courseId
-        )
+        caseStudyViewModel.loadCaseStudy(token, courseId)
     }
 
     private fun claimCertificate() {
 
-        val token =
-            sessionManager.getToken()
+        val token = sessionManager.getToken()
 
         if (token.isNullOrEmpty()) {
             return
         }
 
-        btnClaimCertificate.isEnabled =
-            false
+        btnClaimCertificate.isEnabled = false
 
-        btnClaimCertificate.text =
-            "Claiming..."
+        btnClaimCertificate.text = "Claiming..."
 
-        certificateViewModel.claimCertificate(
-            token,
-            courseId
-        )
+        certificateViewModel.claimCertificate(token, courseId)
     }
 
-    private fun showCaseStudy(
-        response:
-        CaseStudyResponse
-    ) {
+    private fun showCaseStudy(response: CaseStudyResponse) {
 
-        tvCaseStudyTitle.text =
-            response.case_study.title
+        tvCaseStudyTitle.text = response.case_study.title
 
-        tvScenario.text =
-            response.case_study.scenario
+        tvScenario.text = response.case_study.scenario
 
-        tvTaskDescription.text =
-            response.case_study.task_description
+        tvTaskDescription.text = response.case_study.task_description
 
-        val mentoring =
-            response.mentoring
+        val mentoring = response.mentoring
 
-        val review =
-            response.review
+        val review = response.review
 
-        canClaimCertificate =
-            false
+        canClaimCertificate = false
 
-        tvApprovalBadge.visibility =
-            View.GONE
+        tvApprovalBadge.visibility = View.GONE
 
-        btnClaimCertificate.text =
-            "Claim your certificate"
+        btnClaimCertificate.text = "Claim your certificate"
 
-        btnClaimCertificate.isEnabled =
-            false
+        btnClaimCertificate.isEnabled = false
 
-        btnClaimCertificate.backgroundTintList =
-            ColorStateList.valueOf(
-                Color.parseColor(
-                    "#B8BDC7"
-                )
-            )
+        btnClaimCertificate.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#B8BDC7"))
 
         if (mentoring == null) {
 
@@ -299,11 +212,9 @@ class CaseStudyActivity : AppCompatActivity() {
 
             "under_review" -> {
 
-                tvApprovalBadge.visibility =
-                    View.VISIBLE
+                tvApprovalBadge.visibility = View.VISIBLE
 
-                tvApprovalBadge.text =
-                    "Under review by ${mentoring.mentor_name}"
+                tvApprovalBadge.text = "Under review by ${mentoring.mentor_name}"
 
                 tvCertificateStatus.text =
                     "Your mentor is reviewing your case study. The certificate will unlock after approval."
@@ -311,36 +222,26 @@ class CaseStudyActivity : AppCompatActivity() {
 
             "approved" -> {
 
-                tvApprovalBadge.visibility =
-                    View.VISIBLE
+                tvApprovalBadge.visibility = View.VISIBLE
 
-                tvApprovalBadge.text =
-                    "Approved by ${mentoring.mentor_name}"
+                tvApprovalBadge.text = "Approved by ${mentoring.mentor_name}"
 
                 tvCertificateStatus.text =
                     "Your mentor approved your case study. You can claim your certificate now."
 
-                canClaimCertificate =
-                    true
+                canClaimCertificate = true
 
-                btnClaimCertificate.isEnabled =
-                    true
+                btnClaimCertificate.isEnabled = true
 
                 btnClaimCertificate.backgroundTintList =
-                    ColorStateList.valueOf(
-                        Color.parseColor(
-                            "#2F6FED"
-                        )
-                    )
+                    ColorStateList.valueOf(Color.parseColor("#2F6FED"))
             }
 
             "not_approved" -> {
 
-                tvApprovalBadge.visibility =
-                    View.VISIBLE
+                tvApprovalBadge.visibility = View.VISIBLE
 
-                tvApprovalBadge.text =
-                    "Not approved by ${mentoring.mentor_name}"
+                tvApprovalBadge.text = "Not approved by ${mentoring.mentor_name}"
 
                 tvCertificateStatus.text =
                     "Your case study was not approved. The certificate cannot be claimed."
@@ -348,60 +249,35 @@ class CaseStudyActivity : AppCompatActivity() {
         }
     }
 
-    private fun openCertificate(
-        certificate:
-        StudentCertificateResponse
-    ) {
+    private fun openCertificate(certificate: StudentCertificateResponse) {
 
-        val pdfUrl =
-            certificate.pdf_url
+        val pdfUrl = certificate.pdf_url
 
         if (pdfUrl.isNullOrBlank()) {
 
-            Toast.makeText(
-                this,
-                "Certificate PDF not found",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Certificate PDF not found", Toast.LENGTH_SHORT).show()
 
             return
         }
 
-        val finalUrl =
-            if (
-                pdfUrl.startsWith(
-                    "http"
-                )
-            ) {
+        val finalUrl = if (pdfUrl.startsWith("http")) {
 
-                pdfUrl
+            pdfUrl
 
-            } else {
+        } else {
 
-                "${ApiClient.BASE_URL}$pdfUrl"
-            }
+            "${ApiClient.BASE_URL}$pdfUrl"
+        }
 
         try {
 
-            val intent =
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(
-                        finalUrl
-                    )
-                )
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(finalUrl))
 
-            startActivity(
-                intent
-            )
+            startActivity(intent)
 
         } catch (e: Exception) {
 
-            Toast.makeText(
-                this,
-                "Cannot open certificate",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(this, "Cannot open certificate", Toast.LENGTH_SHORT).show()
         }
     }
 }

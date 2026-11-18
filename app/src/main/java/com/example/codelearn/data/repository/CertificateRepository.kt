@@ -7,26 +7,15 @@ import retrofit2.Response
 
 class CertificateRepository {
 
-    private val apiService =
-        ApiClient.apiService
+    private val apiService = ApiClient.apiService
 
-    suspend fun claimCertificate(
-        token: String,
-        courseId: Int
-    ): Response<ClaimCertificateResponse> {
+    suspend fun claimCertificate(token: String, courseId: Int): Response<ClaimCertificateResponse> {
 
-        return apiService.claimCertificate(
-            "Bearer $token",
-            courseId
-        )
+        return apiService.claimCertificate("Bearer $token", courseId)
     }
 
-    suspend fun getMyCertificates(
-        token: String
-    ): Response<CertificateListResponse> {
+    suspend fun getMyCertificates(token: String): Response<CertificateListResponse> {
 
-        return apiService.getMyCertificates(
-            "Bearer $token"
-        )
+        return apiService.getMyCertificates("Bearer $token")
     }
 }
