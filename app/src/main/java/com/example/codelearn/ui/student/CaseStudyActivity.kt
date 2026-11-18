@@ -13,6 +13,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
+import com.example.codelearn.data.remote.ApiClient
 import com.example.codelearn.data.remote.CaseStudyResponse
 import com.example.codelearn.data.remote.StudentCertificateResponse
 import com.example.codelearn.viewmodel.CaseStudyViewModel
@@ -375,7 +376,7 @@ class CaseStudyActivity : AppCompatActivity() {
 
             } else {
 
-                "http://10.0.2.2:3001$pdfUrl"
+                "${ApiClient.BASE_URL}$pdfUrl"
             }
 
         try {

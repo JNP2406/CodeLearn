@@ -4,11 +4,9 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import coil.load
+import com.example.codelearn.data.remote.ApiClient
 
 object AvatarHelper {
-
-    private const val BASE_URL =
-        "http://10.0.2.2:3001"
 
     fun show(
         imageView: ImageView,
@@ -34,7 +32,7 @@ object AvatarHelper {
             ) {
                 imagePath
             } else {
-                "$BASE_URL$imagePath"
+                "${ApiClient.BASE_URL}$imagePath"
             }
 
         imageView.visibility =

@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import coil.load
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
+import com.example.codelearn.data.remote.ApiClient
 import com.example.codelearn.data.remote.StudentCertificateResponse
 import com.example.codelearn.model.ProfileUser
 import com.example.codelearn.ui.auth.SignInActivity
@@ -552,7 +553,7 @@ class StudentProfileActivity : AppCompatActivity() {
             return path
         }
 
-        return "http://10.0.2.2:3001$path"
+        return "${ApiClient.BASE_URL}$path"
     }
 
     private fun signOut() {
