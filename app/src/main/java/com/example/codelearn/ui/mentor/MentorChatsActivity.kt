@@ -21,6 +21,7 @@ import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.ActiveMentoring
 import com.example.codelearn.model.MentoringRequest
 import com.example.codelearn.ui.auth.SignInActivity
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.util.AvatarHelper
 import com.example.codelearn.util.NotificationBadgeHelper
 import com.example.codelearn.viewmodel.MentorDashboardViewModel
@@ -42,6 +43,7 @@ class MentorChatsActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_mentor_chats
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

@@ -19,6 +19,7 @@ import com.example.codelearn.data.remote.QuizAnswerRequest
 import com.example.codelearn.data.remote.QuizQuestionResponse
 import com.example.codelearn.data.remote.QuizReviewQuestionResponse
 import com.example.codelearn.data.remote.QuizSubmitRequest
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.QuizViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -82,6 +83,7 @@ class QuizActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_quiz
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

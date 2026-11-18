@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.NotificationItem
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.NotificationViewModel
 
 class NotificationActivity : AppCompatActivity() {
@@ -37,6 +38,7 @@ class NotificationActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_notification
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

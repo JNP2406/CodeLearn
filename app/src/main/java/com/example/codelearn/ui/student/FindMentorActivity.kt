@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.MentorListItem
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.FindMentorViewModel
 
 class FindMentorActivity : AppCompatActivity() {
@@ -47,6 +48,7 @@ class FindMentorActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_find_mentor
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

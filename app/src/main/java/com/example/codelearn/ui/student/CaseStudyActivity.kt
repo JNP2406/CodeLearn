@@ -16,6 +16,7 @@ import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.data.remote.ApiClient
 import com.example.codelearn.data.remote.CaseStudyResponse
 import com.example.codelearn.data.remote.StudentCertificateResponse
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.CaseStudyViewModel
 import com.example.codelearn.viewmodel.CertificateViewModel
 import com.google.android.material.button.MaterialButton
@@ -67,6 +68,7 @@ class CaseStudyActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_case_study
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

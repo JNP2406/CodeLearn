@@ -5,6 +5,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
+import com.example.codelearn.util.ActivityConfig
 import com.google.android.material.button.MaterialButton
 
 class QuizResultActivity : AppCompatActivity() {
@@ -33,6 +34,7 @@ class QuizResultActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_quiz_result
         )
+        ActivityConfig.config(window)
 
         btnBackArea =
             findViewById(

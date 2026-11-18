@@ -11,6 +11,7 @@ import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.ui.mentor.MentorChatsActivity
 import com.example.codelearn.ui.student.StudentHomeActivity
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.AuthViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -39,6 +40,7 @@ class SignUpActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_sign_up
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

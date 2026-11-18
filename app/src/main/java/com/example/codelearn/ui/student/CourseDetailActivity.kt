@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.data.remote.CourseDetail
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.CourseViewModel
 import com.example.codelearn.viewmodel.ProgressViewModel
 import com.google.android.material.button.MaterialButton
@@ -44,6 +45,7 @@ class CourseDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_course_detail)
+        ActivityConfig.config(window)
 
         sessionManager = SessionManager(this)
 

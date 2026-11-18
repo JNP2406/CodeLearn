@@ -18,6 +18,7 @@ import com.example.codelearn.data.remote.CourseDetail
 import com.example.codelearn.data.remote.MaterialResponse
 import com.example.codelearn.data.remote.SessionProgressResponse
 import com.example.codelearn.data.remote.SessionResponse
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.CourseViewModel
 import com.example.codelearn.viewmodel.MaterialViewModel
 import com.example.codelearn.viewmodel.ProgressViewModel
@@ -97,6 +98,7 @@ class CourseSectionActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_course_section
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

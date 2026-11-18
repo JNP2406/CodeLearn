@@ -23,6 +23,7 @@ import com.example.codelearn.data.remote.ApiClient
 import com.example.codelearn.model.ProfileSpecialization
 import com.example.codelearn.model.ProfileUser
 import com.example.codelearn.ui.auth.SignInActivity
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.util.AvatarHelper
 import com.example.codelearn.viewmodel.ProfileViewModel
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -67,6 +68,7 @@ class MentorProfileActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_mentor_profile
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

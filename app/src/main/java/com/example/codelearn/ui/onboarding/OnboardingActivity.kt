@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.ui.auth.SignUpActivity
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.OnboardingViewModel
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
@@ -36,6 +37,7 @@ class OnboardingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_onboarding)
+        ActivityConfig.config(window)
 
         imgOnboarding = findViewById(R.id.imgOnboarding)
         tvTitle = findViewById(R.id.tvTitle)

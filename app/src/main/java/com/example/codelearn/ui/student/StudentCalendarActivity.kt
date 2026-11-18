@@ -19,6 +19,7 @@ import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.StudentCalendarEvent
 import com.example.codelearn.model.StudentMentoringItem
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.util.AvatarHelper
 import com.example.codelearn.util.NotificationBadgeHelper
 import com.example.codelearn.viewmodel.StudentCalendarViewModel
@@ -62,6 +63,7 @@ class StudentCalendarActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_student_calendar
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

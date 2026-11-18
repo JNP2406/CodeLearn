@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.MentorCaseStudyResponse
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.viewmodel.MentorCaseStudyViewModel
 
 class MentorCaseStudyReviewActivity : AppCompatActivity() {
@@ -38,6 +39,7 @@ class MentorCaseStudyReviewActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_mentor_case_study_review
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)

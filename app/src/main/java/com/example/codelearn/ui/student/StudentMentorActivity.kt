@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.codelearn.R
 import com.example.codelearn.data.local.SessionManager
 import com.example.codelearn.model.StudentMentoringItem
+import com.example.codelearn.util.ActivityConfig
 import com.example.codelearn.util.AvatarHelper
 import com.example.codelearn.util.NotificationBadgeHelper
 import com.example.codelearn.viewmodel.StudentMentorViewModel
@@ -37,6 +38,7 @@ class StudentMentorActivity : AppCompatActivity() {
         setContentView(
             R.layout.activity_student_mentor
         )
+        ActivityConfig.config(window)
 
         sessionManager =
             SessionManager(this)
